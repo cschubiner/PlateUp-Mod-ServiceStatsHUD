@@ -110,8 +110,9 @@ namespace KitchenServiceStatsHUD.Helpers
             bool hasPlayerActor = ServiceStatsEntityHelpers.TryResolvePlayerFromSource(entityManager, source, out player) ||
                                   ServiceStatsEntityHelpers.TryResolveServingPlayer(entityManager, proposal, out player) ||
                                   TryResolveRememberedItemOwner(entityManager, proposal.Item, out player);
+            bool itemStillHeldByPlayer = hasPlayerActor && ServiceStatsEntityHelpers.IsItemStillHeldByPlayer(entityManager, proposal.Item, player);
 
-            if (!ServiceStatsHudLogic.ShouldRecordResolvedServe(acceptance.Status == ItemAcceptStatus.Accepted, hasPlayerActor))
+            if (!ServiceStatsHudLogic.ShouldRecordResolvedServe(acceptance.Status == ItemAcceptStatus.Accepted, hasPlayerActor, itemStillHeldByPlayer))
             {
                 return;
             }
@@ -129,12 +130,14 @@ namespace KitchenServiceStatsHUD.Helpers
             bool hasPlayerActor = TryResolveDrinkDeliveryPlayer(entityManager, proposal, out player);
             bool isDrinkItem = entityManager.Exists(proposal.Item) && entityManager.HasComponent<CDrink>(proposal.Item);
             bool isCustomerDrinkDestination = IsCustomerDrinkDestination(entityManager, proposal.Destination);
+            bool itemStillHeldByPlayer = hasPlayerActor && ServiceStatsEntityHelpers.IsItemStillHeldByPlayer(entityManager, proposal.Item, player);
 
             if (!ServiceStatsHudLogic.ShouldRecordDrinkDeliveryServe(
                 acceptance.Status == ItemAcceptStatus.Accepted,
                 isDrinkItem,
                 isCustomerDrinkDestination,
-                hasPlayerActor))
+                hasPlayerActor,
+                itemStillHeldByPlayer))
             {
                 return;
             }

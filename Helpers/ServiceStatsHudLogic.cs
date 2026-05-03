@@ -323,12 +323,22 @@ namespace KitchenServiceStatsHUD.Helpers
 
         public static bool ShouldRecordResolvedServe(bool transferAccepted, bool hasPlayerActor)
         {
-            return transferAccepted && hasPlayerActor;
+            return ShouldRecordResolvedServe(transferAccepted, hasPlayerActor, false);
+        }
+
+        public static bool ShouldRecordResolvedServe(bool transferAccepted, bool hasPlayerActor, bool itemStillHeldByPlayer)
+        {
+            return transferAccepted && hasPlayerActor && !itemStillHeldByPlayer;
         }
 
         public static bool ShouldRecordDrinkDeliveryServe(bool transferAccepted, bool isDrinkItem, bool isCustomerDrinkDestination, bool hasPlayerActor)
         {
-            return transferAccepted && isDrinkItem && isCustomerDrinkDestination && hasPlayerActor;
+            return ShouldRecordDrinkDeliveryServe(transferAccepted, isDrinkItem, isCustomerDrinkDestination, hasPlayerActor, false);
+        }
+
+        public static bool ShouldRecordDrinkDeliveryServe(bool transferAccepted, bool isDrinkItem, bool isCustomerDrinkDestination, bool hasPlayerActor, bool itemStillHeldByPlayer)
+        {
+            return transferAccepted && isDrinkItem && isCustomerDrinkDestination && hasPlayerActor && !itemStillHeldByPlayer;
         }
 
         public static ServiceStatsServeCredit GetServeCredit(bool served)

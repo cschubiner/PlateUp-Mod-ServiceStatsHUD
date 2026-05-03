@@ -101,6 +101,7 @@ namespace KitchenServiceStatsHUD.Helpers
                 Transfer = proposalEntity,
                 Acceptance = acceptance,
                 Player = player,
+                Item = proposal.Item,
                 Group = group,
                 OrderIndex = orderAcceptance.OrderIndex,
                 IsExtra = isExtra,
@@ -153,6 +154,7 @@ namespace KitchenServiceStatsHUD.Helpers
                 Transfer = proposalEntity,
                 Acceptance = acceptance,
                 Player = player,
+                Item = proposal.Item,
                 Group = group,
                 OrderIndex = partialAcceptance.OrderIndex,
                 IsExtra = false,
@@ -179,6 +181,28 @@ namespace KitchenServiceStatsHUD.Helpers
             CWaitingForItem waitingItem = waitingItems[state.OrderIndex];
             bool isSatisfied = state.IsExtra ? waitingItem.ExtraSatisfied : waitingItem.Satisfied;
             return !state.WasSatisfied && isSatisfied;
+        }
+
+        internal static bool IsItemStillHeldByPlayer(EntityManager entityManager, Entity item, Entity player)
+        {
+            if (item == Entity.Null || !entityManager.Exists(item) || !IsValidPlayer(entityManager, player))
+            {
+                return false;
+            }
+
+            if (entityManager.HasComponent<CHeldBy>(item) &&
+                entityManager.GetComponentData<CHeldBy>(item).Holder == player)
+            {
+                return true;
+            }
+
+            if (entityManager.HasComponent<CItemHolder>(player) &&
+                entityManager.GetComponentData<CItemHolder>(player).HeldItem == item)
+            {
+                return true;
+            }
+
+            return false;
         }
 
         public static bool TryResolvePlayerFromSource(EntityManager entityManager, Entity source, out Entity player)

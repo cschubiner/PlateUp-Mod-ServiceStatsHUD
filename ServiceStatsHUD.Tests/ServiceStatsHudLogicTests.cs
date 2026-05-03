@@ -385,15 +385,17 @@ namespace KitchenServiceStatsHUD.Tests
         }
 
         [TestMethod]
-        public void ShouldRecordResolvedServe_RequiresAcceptedTransferAndPlayer()
+        public void ShouldRecordResolvedServe_RequiresAcceptedTransferPlayerAndReleasedItem()
         {
             Assert.IsTrue(ServiceStatsHudLogic.ShouldRecordResolvedServe(true, true));
             Assert.IsFalse(ServiceStatsHudLogic.ShouldRecordResolvedServe(false, true));
             Assert.IsFalse(ServiceStatsHudLogic.ShouldRecordResolvedServe(true, false));
+            Assert.IsFalse(ServiceStatsHudLogic.ShouldRecordResolvedServe(true, true, true));
+            Assert.IsTrue(ServiceStatsHudLogic.ShouldRecordResolvedServe(true, true, false));
         }
 
         [TestMethod]
-        public void ShouldRecordDrinkDeliveryServe_RequiresAcceptedDrinkDeliveryWithPlayer()
+        public void ShouldRecordDrinkDeliveryServe_RequiresAcceptedDrinkDeliveryWithReleasedItem()
         {
             Assert.IsTrue(ServiceStatsHudLogic.ShouldRecordDrinkDeliveryServe(
                 transferAccepted: true,
@@ -405,6 +407,8 @@ namespace KitchenServiceStatsHUD.Tests
             Assert.IsFalse(ServiceStatsHudLogic.ShouldRecordDrinkDeliveryServe(true, false, true, true));
             Assert.IsFalse(ServiceStatsHudLogic.ShouldRecordDrinkDeliveryServe(true, true, false, true));
             Assert.IsFalse(ServiceStatsHudLogic.ShouldRecordDrinkDeliveryServe(true, true, true, false));
+            Assert.IsFalse(ServiceStatsHudLogic.ShouldRecordDrinkDeliveryServe(true, true, true, true, true));
+            Assert.IsTrue(ServiceStatsHudLogic.ShouldRecordDrinkDeliveryServe(true, true, true, true, false));
         }
 
         [TestMethod]

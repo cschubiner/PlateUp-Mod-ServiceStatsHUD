@@ -109,6 +109,7 @@ namespace KitchenServiceStatsHUD.Helpers
         public Entity Transfer;
         public Entity Acceptance;
         public Entity Player;
+        public Entity Item;
         public Entity Group;
         public int OrderIndex;
         public bool IsExtra;

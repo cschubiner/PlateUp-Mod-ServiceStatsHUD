@@ -21,6 +21,7 @@ namespace KitchenServiceStatsHUD.Patches
         {
             if (!accepted ||
                 !state.ShouldRecord ||
+                ServiceStatsEntityHelpers.IsItemStillHeldByPlayer(entityManager, state.Item, state.Player) ||
                 !ServiceStatsRuntime.TryRecordDishServedForTransferOnce(entityManager, state.Transfer, state.Acceptance, state.Player))
             {
                 return;
