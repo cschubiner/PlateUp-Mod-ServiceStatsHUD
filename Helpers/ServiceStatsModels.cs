@@ -96,7 +96,7 @@ namespace KitchenServiceStatsHUD.Helpers
         public Entity Actor;
         public Entity Appliance;
         public int Process;
-        public bool IsCleaningAppliance;
+        public bool IsWashCleaningProcess;
         public bool ActionRecorded;
     }
 

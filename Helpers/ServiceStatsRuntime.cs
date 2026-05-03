@@ -135,14 +135,14 @@ namespace KitchenServiceStatsHUD.Helpers
             state.DishesWashed++;
         }
 
-        public static void RecordCompletedCleaningProcess(EntityManager entityManager, Entity player, bool isCleaningAppliance)
+        public static void RecordCompletedCleaningProcess(EntityManager entityManager, Entity player, bool isWashCleaningProcess)
         {
-            RecordCompletedCleaningProcess(entityManager, player, isCleaningAppliance, false);
+            RecordCompletedCleaningProcess(entityManager, player, isWashCleaningProcess, false);
         }
 
-        public static void RecordCompletedCleaningProcess(EntityManager entityManager, Entity player, bool isCleaningAppliance, bool actionAlreadyRecorded)
+        public static void RecordCompletedCleaningProcess(EntityManager entityManager, Entity player, bool isWashCleaningProcess, bool actionAlreadyRecorded)
         {
-            ServiceStatsCleaningCredit credit = ServiceStatsHudLogic.GetCompletedCleaningCredit(isCleaningAppliance, actionAlreadyRecorded);
+            ServiceStatsCleaningCredit credit = ServiceStatsHudLogic.GetCompletedCleaningCredit(isWashCleaningProcess, actionAlreadyRecorded);
             if (credit.RecordAction)
             {
                 RecordAction(entityManager, player);
@@ -419,10 +419,8 @@ namespace KitchenServiceStatsHUD.Helpers
             Entity resolvedPlayer;
             if (!entityManager.Exists(itemEntity) ||
                 process.Actor == Entity.Null ||
-                process.Appliance == Entity.Null ||
                 process.IsAutomatic ||
-                !ServiceStatsEntityHelpers.TryResolvePlayerFromSource(entityManager, process.Actor, out resolvedPlayer) ||
-                !entityManager.Exists(process.Appliance))
+                !ServiceStatsEntityHelpers.TryResolvePlayerFromSource(entityManager, process.Actor, out resolvedPlayer))
             {
                 CleaningProcesses.Remove(itemKey);
                 return;
@@ -430,7 +428,7 @@ namespace KitchenServiceStatsHUD.Helpers
 
             NotePotentialPlayer(entityManager, resolvedPlayer);
             RememberItemOwner(entityManager, itemEntity, resolvedPlayer);
-            bool isCleaningAppliance = IsDishCleaningAppliance(entityManager, process.Appliance);
+            bool isWashCleaningProcess = IsWashCleaningProcess(entityManager, itemEntity, process.Appliance);
             ServiceStatsProcessSnapshot existingSnapshot;
             bool actionRecorded = CleaningProcesses.TryGetValue(itemKey, out existingSnapshot) &&
                                   existingSnapshot.Actor == resolvedPlayer &&
@@ -450,7 +448,7 @@ namespace KitchenServiceStatsHUD.Helpers
                 Actor = resolvedPlayer,
                 Appliance = process.Appliance,
                 Process = process.Process,
-                IsCleaningAppliance = isCleaningAppliance,
+                IsWashCleaningProcess = isWashCleaningProcess,
                 ActionRecorded = actionRecorded
             };
         }
@@ -460,16 +458,16 @@ namespace KitchenServiceStatsHUD.Helpers
             return ServiceStatsHudLogic.GetProcessSnapshotKey(processEntity.Index);
         }
 
-        public static bool TryConsumeCompletedCleaningProcess(EntityManager entityManager, int itemKey, CCompletedProcess completion, out Entity actor, out bool isCleaningAppliance)
+        public static bool TryConsumeCompletedCleaningProcess(EntityManager entityManager, int itemKey, CCompletedProcess completion, out Entity actor, out bool isWashCleaningProcess)
         {
             bool actionAlreadyRecorded;
-            return TryConsumeCompletedCleaningProcess(entityManager, itemKey, completion, out actor, out isCleaningAppliance, out actionAlreadyRecorded);
+            return TryConsumeCompletedCleaningProcess(entityManager, itemKey, completion, out actor, out isWashCleaningProcess, out actionAlreadyRecorded);
         }
 
-        public static bool TryConsumeCompletedCleaningProcess(EntityManager entityManager, int itemKey, CCompletedProcess completion, out Entity actor, out bool isCleaningAppliance, out bool actionAlreadyRecorded)
+        public static bool TryConsumeCompletedCleaningProcess(EntityManager entityManager, int itemKey, CCompletedProcess completion, out Entity actor, out bool isWashCleaningProcess, out bool actionAlreadyRecorded)
         {
             actor = Entity.Null;
-            isCleaningAppliance = false;
+            isWashCleaningProcess = false;
             actionAlreadyRecorded = false;
 
             ServiceStatsProcessSnapshot snapshot;
@@ -483,16 +481,22 @@ namespace KitchenServiceStatsHUD.Helpers
             if (completion.IsBad ||
                 snapshot.Process != completion.Process ||
                 !entityManager.Exists(snapshot.Item) ||
-                !ServiceStatsEntityHelpers.IsValidPlayer(entityManager, snapshot.Actor) ||
-                !entityManager.Exists(snapshot.Appliance))
+                !ServiceStatsEntityHelpers.IsValidPlayer(entityManager, snapshot.Actor))
             {
                 return false;
             }
 
             actor = snapshot.Actor;
-            isCleaningAppliance = snapshot.IsCleaningAppliance && IsDishCleaningAppliance(entityManager, snapshot.Appliance);
+            isWashCleaningProcess = snapshot.IsWashCleaningProcess && IsWashCleaningProcess(entityManager, snapshot.Item, snapshot.Appliance);
             actionAlreadyRecorded = snapshot.ActionRecorded;
             return true;
+        }
+
+        public static bool IsWashCleaningProcess(EntityManager entityManager, Entity itemEntity, Entity appliance)
+        {
+            return ServiceStatsHudLogic.IsCompletedCleaningProcessWashEligible(
+                IsDishCleaningAppliance(entityManager, appliance),
+                IsFloorMessCleaningTarget(entityManager, itemEntity) || IsFloorMessCleaningTarget(entityManager, appliance));
         }
 
         public static bool IsDishCleaningAppliance(EntityManager entityManager, Entity appliance)
@@ -500,6 +504,13 @@ namespace KitchenServiceStatsHUD.Helpers
             return entityManager.Exists(appliance) &&
                    (entityManager.HasComponent<CCleanAppliance>(appliance) ||
                     entityManager.HasComponent<CToolClean>(appliance));
+        }
+
+        public static bool IsFloorMessCleaningTarget(EntityManager entityManager, Entity target)
+        {
+            return entityManager.Exists(target) &&
+                   (entityManager.HasComponent<CMess>(target) ||
+                    entityManager.HasComponent<CStackableMess>(target));
         }
 
         public static void RemoveStaleCleaningProcesses(EntityManager entityManager)

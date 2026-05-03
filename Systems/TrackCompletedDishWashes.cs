@@ -71,9 +71,9 @@ namespace KitchenServiceStatsHUD.Systems
 
                     CCompletedProcess completion = EntityManager.GetComponentData<CCompletedProcess>(item);
                     Entity actor;
-                    bool isCleaningAppliance;
+                    bool isWashCleaningProcess;
                     bool actionAlreadyRecorded;
-                    if (!ServiceStatsRuntime.TryConsumeCompletedCleaningProcess(EntityManager, ServiceStatsRuntime.GetProcessSnapshotKey(item), completion, out actor, out isCleaningAppliance, out actionAlreadyRecorded))
+                    if (!ServiceStatsRuntime.TryConsumeCompletedCleaningProcess(EntityManager, ServiceStatsRuntime.GetProcessSnapshotKey(item), completion, out actor, out isWashCleaningProcess, out actionAlreadyRecorded))
                     {
                         if (!EntityManager.HasComponent<CItemUndergoingProcess>(item))
                         {
@@ -81,13 +81,13 @@ namespace KitchenServiceStatsHUD.Systems
                         }
 
                         ServiceStatsRuntime.RememberCleaningProcess(EntityManager, item, EntityManager.GetComponentData<CItemUndergoingProcess>(item));
-                        if (!ServiceStatsRuntime.TryConsumeCompletedCleaningProcess(EntityManager, ServiceStatsRuntime.GetProcessSnapshotKey(item), completion, out actor, out isCleaningAppliance, out actionAlreadyRecorded))
+                        if (!ServiceStatsRuntime.TryConsumeCompletedCleaningProcess(EntityManager, ServiceStatsRuntime.GetProcessSnapshotKey(item), completion, out actor, out isWashCleaningProcess, out actionAlreadyRecorded))
                         {
                             continue;
                         }
                     }
 
-                    ServiceStatsRuntime.RecordCompletedCleaningProcess(EntityManager, actor, isCleaningAppliance, actionAlreadyRecorded);
+                    ServiceStatsRuntime.RecordCompletedCleaningProcess(EntityManager, actor, isWashCleaningProcess, actionAlreadyRecorded);
                 }
             }
         }

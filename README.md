@@ -6,10 +6,10 @@ Standalone PlateUp mod that adds a top-right debug-style HUD with per-player dai
 
 - `srv`: dishes served
 - `ord`: orders taken manually or by order machine
-- `wash`: dishes washed by completed player cleaning processes
+- `wash`: dishes washed and floor messes cleaned by completed player cleaning processes
 - `act`: generic player-attributed actions, including serving, ordering, washing, chopping-style interactions, and compatible transfer/combine interactions
 - `dist`: player movement distance during the day
-- `idle`: idle time after 3 seconds without an attributed action
+- `idle`: idle time after 5 seconds without an attributed action
 
 Players are hidden until they have served at least one dish by default. Other totals are still tracked while hidden, so they appear once that player earns their first serve.
 
@@ -40,7 +40,7 @@ Open `Preferences` from the main menu or pause menu, then open `Service Stats HU
 - `UseOrderMachine.Perform(...)`: increments orders and actions only for valid order-machine use.
 - Serve acceptance patches increment served and actions only after confirmed acceptance.
 - Completed player cleaning processes always increment actions.
-- Completed clean-appliance processes also increment washed.
+- Completed clean-appliance processes and floor/mess cleaning processes also increment washed.
 - Generic player interaction/transfer hooks increment actions for supported interaction types.
 - Automation-only outcomes without a player actor do not earn per-player credit.
 
@@ -103,10 +103,10 @@ Run these from `ServiceStatsHUD\`.
 - Manual order-taking increments the correct player.
 - Order-machine use increments the correct player.
 - Serves credit only the serving player.
-- Washing increments both `wash` and `act` for the washing player.
+- Washing dishes or cleaning floor messes increments both `wash` and `act` for the cleaning player.
 - Chopping and combining count as actions where the underlying interaction is supported.
 - Distance increases while players move during daytime.
-- Idle starts increasing after 3 seconds without an attributed action.
+- Idle starts increasing after 5 seconds without an attributed action.
 - Players with zero serves stay hidden unless `Show Everyone` is selected.
 - Once a player serves, their earlier orders, washes, actions, distance, and idle totals appear.
 - The HUD clears at the start of a new day and on relevant restaurant/HQ transitions.

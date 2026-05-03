@@ -317,9 +317,9 @@ namespace KitchenServiceStatsHUD.Tests
             Assert.IsTrue(washCredit.RecordAction);
             Assert.IsTrue(washCredit.RecordWashed);
 
-            ServiceStatsCleaningCredit nonDishCleaningCredit = ServiceStatsHudLogic.GetCompletedCleaningCredit(false);
-            Assert.IsTrue(nonDishCleaningCredit.RecordAction);
-            Assert.IsFalse(nonDishCleaningCredit.RecordWashed);
+            ServiceStatsCleaningCredit nonWashCleaningCredit = ServiceStatsHudLogic.GetCompletedCleaningCredit(false);
+            Assert.IsTrue(nonWashCleaningCredit.RecordAction);
+            Assert.IsFalse(nonWashCleaningCredit.RecordWashed);
         }
 
         [TestMethod]
@@ -332,6 +332,22 @@ namespace KitchenServiceStatsHUD.Tests
             ServiceStatsCleaningCredit genericProcessCredit = ServiceStatsHudLogic.GetCompletedCleaningCredit(false, true);
             Assert.IsFalse(genericProcessCredit.RecordAction);
             Assert.IsFalse(genericProcessCredit.RecordWashed);
+        }
+
+        [TestMethod]
+        public void IsCompletedCleaningProcessWashEligible_CountsDishesAndFloorMessesOnly()
+        {
+            Assert.IsTrue(ServiceStatsHudLogic.IsCompletedCleaningProcessWashEligible(
+                isDishCleaningAppliance: true,
+                isFloorMessTarget: false));
+
+            Assert.IsTrue(ServiceStatsHudLogic.IsCompletedCleaningProcessWashEligible(
+                isDishCleaningAppliance: false,
+                isFloorMessTarget: true));
+
+            Assert.IsFalse(ServiceStatsHudLogic.IsCompletedCleaningProcessWashEligible(
+                isDishCleaningAppliance: false,
+                isFloorMessTarget: false));
         }
 
         [TestMethod]

@@ -304,14 +304,19 @@ namespace KitchenServiceStatsHUD.Helpers
             return -(referenceHeight * screenPercent);
         }
 
-        public static ServiceStatsCleaningCredit GetCompletedCleaningCredit(bool isCleaningAppliance)
+        public static ServiceStatsCleaningCredit GetCompletedCleaningCredit(bool isWashCleaningProcess)
         {
-            return GetCompletedCleaningCredit(isCleaningAppliance, false);
+            return GetCompletedCleaningCredit(isWashCleaningProcess, false);
         }
 
-        public static ServiceStatsCleaningCredit GetCompletedCleaningCredit(bool isCleaningAppliance, bool actionAlreadyRecorded)
+        public static ServiceStatsCleaningCredit GetCompletedCleaningCredit(bool isWashCleaningProcess, bool actionAlreadyRecorded)
         {
-            return new ServiceStatsCleaningCredit(!actionAlreadyRecorded, isCleaningAppliance);
+            return new ServiceStatsCleaningCredit(!actionAlreadyRecorded, isWashCleaningProcess);
+        }
+
+        public static bool IsCompletedCleaningProcessWashEligible(bool isDishCleaningAppliance, bool isFloorMessTarget)
+        {
+            return isDishCleaningAppliance || isFloorMessTarget;
         }
 
         public static bool ShouldRecordResolvedServe(bool transferAccepted, bool hasPlayerActor)
