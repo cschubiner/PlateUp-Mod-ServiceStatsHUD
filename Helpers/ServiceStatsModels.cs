@@ -112,14 +112,6 @@ namespace KitchenServiceStatsHUD.Helpers
         public bool WasSatisfied;
     }
 
-    internal struct ServiceStatsDrinkServeSnapshot
-    {
-        public Entity Group;
-        public Entity Item;
-        public Entity Player;
-        public float TimeToNextDrink;
-    }
-
     internal struct ServiceStatsOrderActionState
     {
         public bool ShouldRecord;

@@ -16,7 +16,6 @@ namespace KitchenServiceStatsHUD.Helpers
         private static readonly Dictionary<int, int> ActiveInteractionAttempts = new Dictionary<int, int>();
         private static readonly Dictionary<int, int> LastActionFrameByPlayer = new Dictionary<int, int>();
         private static readonly Dictionary<int, Entity> ItemOwners = new Dictionary<int, Entity>();
-        private static readonly Dictionary<int, ServiceStatsDrinkServeSnapshot> DrinkServeSnapshots = new Dictionary<int, ServiceStatsDrinkServeSnapshot>();
         private static readonly HashSet<Entity> ProcessedServeAcceptances = new HashSet<Entity>();
         private static readonly HashSet<Entity> ProcessedActionTransfers = new HashSet<Entity>();
         private static readonly HashSet<Entity> ActiveDurationActions = new HashSet<Entity>();
@@ -32,7 +31,6 @@ namespace KitchenServiceStatsHUD.Helpers
             ActiveInteractionAttempts.Clear();
             LastActionFrameByPlayer.Clear();
             ItemOwners.Clear();
-            DrinkServeSnapshots.Clear();
             ProcessedServeAcceptances.Clear();
             ProcessedActionTransfers.Clear();
             ActiveDurationActions.Clear();
@@ -113,6 +111,29 @@ namespace KitchenServiceStatsHUD.Helpers
                                   TryResolveRememberedItemOwner(entityManager, proposal.Item, out player);
 
             if (!ServiceStatsHudLogic.ShouldRecordResolvedServe(acceptance.Status == ItemAcceptStatus.Accepted, hasPlayerActor))
+            {
+                return;
+            }
+
+            RememberItemOwner(entityManager, proposal.Item, player);
+            if (TryRecordDishServedForTransferOnce(entityManager, acceptance.Proposal, fallbackEntity, player))
+            {
+                TryRecordActionForTransferOnce(entityManager, acceptance.Proposal, player);
+            }
+        }
+
+        public static void RecordResolvedDrinkDeliveryServe(EntityManager entityManager, CItemTransferAccept acceptance, CItemTransferProposal proposal, Entity fallbackEntity)
+        {
+            Entity player;
+            bool hasPlayerActor = TryResolveDrinkDeliveryPlayer(entityManager, proposal, out player);
+            bool isDrinkItem = entityManager.Exists(proposal.Item) && entityManager.HasComponent<CDrink>(proposal.Item);
+            bool isCustomerDrinkDestination = IsCustomerDrinkDestination(entityManager, proposal.Destination);
+
+            if (!ServiceStatsHudLogic.ShouldRecordDrinkDeliveryServe(
+                acceptance.Status == ItemAcceptStatus.Accepted,
+                isDrinkItem,
+                isCustomerDrinkDestination,
+                hasPlayerActor))
             {
                 return;
             }
@@ -292,73 +313,6 @@ namespace KitchenServiceStatsHUD.Helpers
             }
         }
 
-        public static void RememberPotentialDrinkServe(EntityManager entityManager, Entity group, Entity item, Entity player, float timeToNextDrink)
-        {
-            if (group == Entity.Null ||
-                item == Entity.Null ||
-                !entityManager.Exists(group) ||
-                !entityManager.Exists(item) ||
-                !entityManager.HasComponent<CDrink>(item) ||
-                !ServiceStatsEntityHelpers.IsValidPlayer(entityManager, player))
-            {
-                return;
-            }
-
-            DrinkServeSnapshots[group.Index] = new ServiceStatsDrinkServeSnapshot
-            {
-                Group = group,
-                Item = item,
-                Player = player,
-                TimeToNextDrink = timeToNextDrink
-            };
-        }
-
-        public static void CompletePotentialDrinkServes(EntityManager entityManager)
-        {
-            if (DrinkServeSnapshots.Count == 0)
-            {
-                return;
-            }
-
-            List<int> staleKeys = new List<int>();
-            foreach (KeyValuePair<int, ServiceStatsDrinkServeSnapshot> pair in DrinkServeSnapshots)
-            {
-                ServiceStatsDrinkServeSnapshot snapshot = pair.Value;
-                if (!entityManager.Exists(snapshot.Group) ||
-                    !entityManager.HasComponent<CWantsDrink>(snapshot.Group) ||
-                    !ServiceStatsEntityHelpers.IsValidPlayer(entityManager, snapshot.Player))
-                {
-                    staleKeys.Add(pair.Key);
-                    continue;
-                }
-
-                CWantsDrink wantsDrink = entityManager.GetComponentData<CWantsDrink>(snapshot.Group);
-                bool drinkWasAccepted = wantsDrink.TimeToNextDrink > snapshot.TimeToNextDrink && !entityManager.Exists(snapshot.Item);
-                if (!drinkWasAccepted)
-                {
-                    continue;
-                }
-
-                ServiceStatsServeCredit credit = ServiceStatsHudLogic.GetServeCredit(true);
-                if (credit.RecordServed)
-                {
-                    RecordDishServed(entityManager, snapshot.Player);
-                }
-
-                if (credit.RecordAction)
-                {
-                    TryRecordActionForTransferOnce(entityManager, snapshot.Item != Entity.Null ? snapshot.Item : snapshot.Group, snapshot.Player);
-                }
-
-                staleKeys.Add(pair.Key);
-            }
-
-            for (int index = 0; index < staleKeys.Count; index++)
-            {
-                DrinkServeSnapshots.Remove(staleKeys[index]);
-            }
-        }
-
         private static void RememberInteractionTargetOwner(EntityManager entityManager, Entity target, Entity player)
         {
             RememberItemOwner(entityManager, target, player);
@@ -370,6 +324,44 @@ namespace KitchenServiceStatsHUD.Helpers
 
             Entity heldItem = entityManager.GetComponentData<CItemHolder>(target).HeldItem;
             RememberItemOwner(entityManager, heldItem, player);
+        }
+
+        private static bool TryResolveDrinkDeliveryPlayer(EntityManager entityManager, CItemTransferProposal proposal, out Entity player)
+        {
+            if (ServiceStatsEntityHelpers.TryResolvePlayerFromSource(entityManager, proposal.Item, out player))
+            {
+                return true;
+            }
+
+            if (ServiceStatsEntityHelpers.TryResolvePlayerFromSource(entityManager, proposal.Source, out player))
+            {
+                return true;
+            }
+
+            return TryResolveRememberedItemOwner(entityManager, proposal.Item, out player);
+        }
+
+        private static bool IsCustomerDrinkDestination(EntityManager entityManager, Entity destination)
+        {
+            Entity tableSet;
+            if (!ServiceStatsEntityHelpers.TryResolveTableSet(entityManager, destination, out tableSet))
+            {
+                return false;
+            }
+
+            if (!entityManager.Exists(tableSet) || !entityManager.HasComponent<COccupiedByGroup>(tableSet))
+            {
+                return false;
+            }
+
+            Entity group = entityManager.GetComponentData<COccupiedByGroup>(tableSet);
+            if (!entityManager.Exists(group) || !entityManager.HasComponent<CWantsDrink>(group))
+            {
+                return false;
+            }
+
+            CWantsDrink wantsDrink = entityManager.GetComponentData<CWantsDrink>(group);
+            return wantsDrink.TimeToNextDrink <= 0f;
         }
 
         public static void RecordMovementSample(EntityManager entityManager, Entity player, Vector3 position)

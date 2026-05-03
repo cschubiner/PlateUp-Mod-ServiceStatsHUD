@@ -324,6 +324,11 @@ namespace KitchenServiceStatsHUD.Helpers
             return transferAccepted && hasPlayerActor;
         }
 
+        public static bool ShouldRecordDrinkDeliveryServe(bool transferAccepted, bool isDrinkItem, bool isCustomerDrinkDestination, bool hasPlayerActor)
+        {
+            return transferAccepted && isDrinkItem && isCustomerDrinkDestination && hasPlayerActor;
+        }
+
         public static ServiceStatsServeCredit GetServeCredit(bool served)
         {
             return new ServiceStatsServeCredit(served, served);

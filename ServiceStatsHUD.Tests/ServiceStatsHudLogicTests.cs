@@ -365,6 +365,21 @@ namespace KitchenServiceStatsHUD.Tests
         }
 
         [TestMethod]
+        public void ShouldRecordDrinkDeliveryServe_RequiresAcceptedDrinkDeliveryWithPlayer()
+        {
+            Assert.IsTrue(ServiceStatsHudLogic.ShouldRecordDrinkDeliveryServe(
+                transferAccepted: true,
+                isDrinkItem: true,
+                isCustomerDrinkDestination: true,
+                hasPlayerActor: true));
+
+            Assert.IsFalse(ServiceStatsHudLogic.ShouldRecordDrinkDeliveryServe(false, true, true, true));
+            Assert.IsFalse(ServiceStatsHudLogic.ShouldRecordDrinkDeliveryServe(true, false, true, true));
+            Assert.IsFalse(ServiceStatsHudLogic.ShouldRecordDrinkDeliveryServe(true, true, false, true));
+            Assert.IsFalse(ServiceStatsHudLogic.ShouldRecordDrinkDeliveryServe(true, true, true, false));
+        }
+
+        [TestMethod]
         public void GetServeCredit_CountsSuccessfulServeAsAction()
         {
             ServiceStatsServeCredit credit = ServiceStatsHudLogic.GetServeCredit(true);

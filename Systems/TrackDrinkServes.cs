@@ -6,8 +6,9 @@ using Unity.Entities;
 
 namespace KitchenServiceStatsHUD.Systems
 {
-    [UpdateBefore(typeof(GroupReceiveDrink))]
-    public class TrackPendingDrinkServes : GenericSystemBase, IModSystem
+    [UpdateInGroup(typeof(PostResolveSatisfactionsGroup))]
+    [UpdateBefore(typeof(CleanAcceptances))]
+    public class TrackDrinkServesFromAcceptedTransfers : GenericSystemBase, IModSystem
     {
         protected override void OnUpdate()
         {
@@ -16,79 +17,46 @@ namespace KitchenServiceStatsHUD.Systems
                 return;
             }
 
-            EntityQuery query = GetEntityQuery(
-                ComponentType.ReadOnly<CWantsDrink>(),
-                ComponentType.ReadOnly<CAssignedTable>());
-
-            using (NativeArray<Entity> groups = query.ToEntityArray(Allocator.Temp))
+            EntityQuery query = GetEntityQuery(ComponentType.ReadOnly<CItemTransferAccept>());
+            using (NativeArray<Entity> acceptances = query.ToEntityArray(Allocator.Temp))
             {
-                for (int index = 0; index < groups.Length; index++)
+                for (int index = 0; index < acceptances.Length; index++)
                 {
-                    Entity group = groups[index];
-                    if (!EntityManager.Exists(group))
+                    Entity acceptanceEntity = acceptances[index];
+                    if (!EntityManager.Exists(acceptanceEntity))
                     {
                         continue;
                     }
 
-                    CWantsDrink wantsDrink = EntityManager.GetComponentData<CWantsDrink>(group);
-                    if (wantsDrink.TimeToNextDrink > 0f)
+                    CItemTransferAccept acceptance = EntityManager.GetComponentData<CItemTransferAccept>(acceptanceEntity);
+                    CItemTransferProposal proposal;
+                    if (!TryGetProposal(acceptance, acceptanceEntity, out proposal))
                     {
                         continue;
                     }
 
-                    Entity tableSet = EntityManager.GetComponentData<CAssignedTable>(group);
-                    RememberDrinksOnGrabPoints(group, tableSet, wantsDrink.TimeToNextDrink);
+                    ServiceStatsRuntime.RecordResolvedDrinkDeliveryServe(EntityManager, acceptance, proposal, acceptanceEntity);
                 }
             }
         }
 
-        private void RememberDrinksOnGrabPoints(Entity group, Entity tableSet, float timeToNextDrink)
+        private bool TryGetProposal(CItemTransferAccept acceptance, Entity acceptanceEntity, out CItemTransferProposal proposal)
         {
-            if (!EntityManager.Exists(tableSet) || !EntityManager.HasComponent<CTableSetGrabPoints>(tableSet))
+            proposal = default(CItemTransferProposal);
+            Entity proposalEntity = acceptance.Proposal;
+            if (EntityManager.Exists(proposalEntity) && EntityManager.HasComponent<CItemTransferProposal>(proposalEntity))
             {
-                return;
+                proposal = EntityManager.GetComponentData<CItemTransferProposal>(proposalEntity);
+                return true;
             }
 
-            DynamicBuffer<CTableSetGrabPoints> grabPoints = EntityManager.GetBuffer<CTableSetGrabPoints>(tableSet);
-            for (int index = 0; index < grabPoints.Length; index++)
+            if (EntityManager.Exists(acceptanceEntity) && EntityManager.HasComponent<CItemTransferProposal>(acceptanceEntity))
             {
-                Entity grabPoint = grabPoints[index];
-                if (!EntityManager.Exists(grabPoint) || !EntityManager.HasComponent<CItemHolder>(grabPoint))
-                {
-                    continue;
-                }
-
-                Entity heldItem = EntityManager.GetComponentData<CItemHolder>(grabPoint).HeldItem;
-                if (heldItem == Entity.Null ||
-                    !EntityManager.Exists(heldItem) ||
-                    !EntityManager.HasComponent<CDrink>(heldItem))
-                {
-                    continue;
-                }
-
-                Entity player;
-                if (!ServiceStatsEntityHelpers.TryResolvePlayerFromSource(EntityManager, heldItem, out player) &&
-                    !ServiceStatsRuntime.TryResolveRememberedItemOwner(EntityManager, heldItem, out player))
-                {
-                    continue;
-                }
-
-                ServiceStatsRuntime.RememberPotentialDrinkServe(EntityManager, group, heldItem, player, timeToNextDrink);
-            }
-        }
-    }
-
-    [UpdateAfter(typeof(GroupReceiveDrink))]
-    public class TrackCompletedDrinkServes : GenericSystemBase, IModSystem
-    {
-        protected override void OnUpdate()
-        {
-            if (!Has<SIsDayTime>())
-            {
-                return;
+                proposal = EntityManager.GetComponentData<CItemTransferProposal>(acceptanceEntity);
+                return true;
             }
 
-            ServiceStatsRuntime.CompletePotentialDrinkServes(EntityManager);
+            return false;
         }
     }
 }

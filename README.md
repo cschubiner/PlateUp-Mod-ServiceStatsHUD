@@ -4,7 +4,7 @@ Standalone PlateUp mod that adds a top-right debug-style HUD with per-player dai
 
 ## What It Tracks
 
-- `srv`: dishes served
+- `srv`: customer order items served at the delivery moment
 - `ord`: orders taken manually or by order machine
 - `wash`: dishes washed and floor messes cleaned by completed player cleaning processes
 - `act`: generic player-attributed actions, including serving, ordering, washing, chopping-style interactions, and compatible transfer/combine interactions
@@ -38,7 +38,8 @@ Open `Preferences` from the main menu or pause menu, then open `Service Stats HU
 
 - `GroupPromptForOrder.Perform(...)`: increments orders and actions only for confirmed order-taking.
 - `UseOrderMachine.Perform(...)`: increments orders and actions only for valid order-machine use.
-- Serve acceptance patches increment served and actions only after confirmed acceptance.
+- Meal serves increment from confirmed order acceptances, so standing near customers does not count.
+- Drink serves increment from confirmed drink transfers into a customer table/grab point, not later passive customer consumption.
 - Completed player cleaning processes always increment actions.
 - Completed clean-appliance processes and floor/mess cleaning processes also increment washed.
 - Generic player interaction/transfer hooks increment actions for supported interaction types.

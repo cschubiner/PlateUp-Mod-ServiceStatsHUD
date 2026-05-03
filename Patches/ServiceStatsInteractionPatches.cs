@@ -204,7 +204,9 @@ namespace KitchenServiceStatsHUD.Patches
 
         private static void Postfix(AcceptIntoPiecemealSatisfaction __instance, ref ServiceStatsServeAcceptanceState __state)
         {
-            ServeTrackingHelpers.RecordConfirmedServe(__instance.EntityManager, __state, __state.ShouldRecord);
+            // Piecemeal transfers can be probed before the resolved acceptance is finalized.
+            // The ECS acceptance tracker records confirmed partial serves without proximity false positives.
+            ServeTrackingHelpers.RecordConfirmedServe(__instance.EntityManager, __state, false);
         }
     }
 
@@ -249,9 +251,7 @@ namespace KitchenServiceStatsHUD.Patches
                 __instance.EntityManager,
                 __state,
                 __state.ShouldRecord &&
-                (__instance.EntityManager.Exists(__state.Acceptance) &&
-                 __instance.EntityManager.HasComponent<CPartialOrderAcceptance>(__state.Acceptance) ||
-                 ServiceStatsEntityHelpers.DidOrderServeAcceptanceComplete(__instance.EntityManager, __state)));
+                ServiceStatsEntityHelpers.DidOrderServeAcceptanceComplete(__instance.EntityManager, __state));
         }
     }
 
