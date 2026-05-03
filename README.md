@@ -1,0 +1,112 @@
+# Service Stats HUD
+
+Standalone PlateUp mod that adds a top-right debug-style HUD with per-player daily service stats. It is intentionally separate from the root rope mod.
+
+## What It Tracks
+
+- `srv`: dishes served
+- `ord`: orders taken manually or by order machine
+- `wash`: dishes washed by completed player cleaning processes
+- `act`: generic player-attributed actions, including serving, ordering, washing, chopping-style interactions, and compatible transfer/combine interactions
+- `dist`: player movement distance during the day
+- `idle`: idle time after 3 seconds without an attributed action
+
+Players are hidden until they have served at least one dish by default. Other totals are still tracked while hidden, so they appear once that player earns their first serve.
+
+## Preferences Menu
+
+Open `Preferences` from the main menu or pause menu, then open `Service Stats HUD`.
+
+- Toggle the HUD on or off.
+- Hide or show orders, washed, actions, distance, and idle.
+- Keep zero-serve players hidden or show everyone.
+- Adjust text size from `30%` through `130%`.
+- Choose a loaded TMP font. `Alt Font 1` is the default, and `Default Font` remains selectable.
+- Move the HUD down with `Current Y` or `10% Down` through `90% Down`.
+- Keep the old layout/split settings available for compatibility, though the current HUD renderer is plain right-aligned text.
+
+## HUD Behavior
+
+- Screen-space Canvas overlay.
+- Plain right-aligned TextMeshPro text, like debug text.
+- Default position: upper right with a small safe margin.
+- The size selector changes font size directly.
+- The y-offset selector moves the text block down from the top of the reference screen.
+- Label format uses the resolved profile/session name when available, otherwise `P#`.
+
+## Attribution Rules
+
+- `GroupPromptForOrder.Perform(...)`: increments orders and actions only for confirmed order-taking.
+- `UseOrderMachine.Perform(...)`: increments orders and actions only for valid order-machine use.
+- Serve acceptance patches increment served and actions only after confirmed acceptance.
+- Completed player cleaning processes always increment actions.
+- Completed clean-appliance processes also increment washed.
+- Generic player interaction/transfer hooks increment actions for supported interaction types.
+- Automation-only outcomes without a player actor do not earn per-player credit.
+
+## Editing The Mod
+
+Source lives in `ServiceStatsHUD\`.
+
+- Entry point: `ServiceStatsHUD\Mod.cs`
+- Runtime stats state: `ServiceStatsHUD\Helpers\ServiceStatsRuntime.cs`
+- Pure HUD/stat logic: `ServiceStatsHUD\Helpers\ServiceStatsHudLogic.cs`
+- Settings menu: `ServiceStatsHUD\Helpers\ServiceStatsSettings.cs`
+- Harmony patches: `ServiceStatsHUD\Patches\ServiceStatsInteractionPatches.cs`
+- ECS systems: `ServiceStatsHUD\Systems\`
+- HUD renderer: `ServiceStatsHUD\Visuals\ServiceStatsHudManager.cs`
+- Tests: `ServiceStatsHUD\ServiceStatsHUD.Tests\ServiceStatsHudLogicTests.cs`
+
+Do not edit generated files under `bin`, `obj`, `TestResults`, or built DLL/PDB files under `workshop\content`.
+
+## Where To Put It
+
+For local PlateUp play, the mod folder should be:
+
+```text
+C:\Program Files (x86)\Steam\steamapps\common\PlateUp\PlateUp\Mods\ServiceStatsHUD
+```
+
+The compiled DLL should be inside:
+
+```text
+C:\Program Files (x86)\Steam\steamapps\common\PlateUp\PlateUp\Mods\ServiceStatsHUD\content\ServiceStatsHUD.dll
+```
+
+Use `Sync-WorkshopToMods.ps1` to copy the full `ServiceStatsHUD\workshop` folder into PlateUp's local `Mods\ServiceStatsHUD` folder.
+
+## Local Stack Verified In This Workspace
+
+- PlateUp install: `C:\Program Files (x86)\Steam\steamapps\common\PlateUp\PlateUp`
+- HarmonyX Workshop dependency: `2898033283`
+- KitchenLib Workshop dependency: `2898069883`
+- PreferenceSystem Workshop dependency: `2949018507`
+- ModUploader path: `PlateUp_Data\ModUploader.exe`
+
+## Build And Test
+
+Run these from `ServiceStatsHUD\`.
+
+1. Check setup:
+   - `powershell.exe -ExecutionPolicy Bypass -File .\Check-PlateUpSetup.ps1`
+2. Run pure logic tests:
+   - `powershell.exe -ExecutionPolicy Bypass -File .\Run-ServiceStatsHUDTests.ps1`
+3. Build the mod:
+   - `powershell.exe -ExecutionPolicy Bypass -File .\Build-ServiceStatsHUD.ps1`
+4. Sync workshop content into the local PlateUp mods folder:
+   - `powershell.exe -ExecutionPolicy Bypass -File .\Sync-WorkshopToMods.ps1`
+
+`Build-ServiceStatsHUD.ps1` compiles `ServiceStatsHUD.dll` and copies the build output into `ServiceStatsHUD\workshop\content`. `Sync-WorkshopToMods.ps1` copies that workshop folder into the local PlateUp `Mods\ServiceStatsHUD` directory.
+
+## In-Game Smoke Checklist
+
+- Manual order-taking increments the correct player.
+- Order-machine use increments the correct player.
+- Serves credit only the serving player.
+- Washing increments both `wash` and `act` for the washing player.
+- Chopping and combining count as actions where the underlying interaction is supported.
+- Distance increases while players move during daytime.
+- Idle starts increasing after 3 seconds without an attributed action.
+- Players with zero serves stay hidden unless `Show Everyone` is selected.
+- Once a player serves, their earlier orders, washes, actions, distance, and idle totals appear.
+- The HUD clears at the start of a new day and on relevant restaurant/HQ transitions.

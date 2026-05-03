@@ -1,0 +1,184 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <Import Project="Local.props" Condition="Exists('Local.props')" />
+
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">x64</Platform>
+    <ProjectGuid>{E2DD3AF8-96EF-4C8F-8A90-9B4B8F9F8D11}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>KitchenServiceStatsHUD</RootNamespace>
+    <AssemblyName>ServiceStatsHUD</AssemblyName>
+    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <Deterministic>true</Deterministic>
+    <LangVersion>7.3</LangVersion>
+    <PlateUpInstallDir Condition="'$(PlateUpInstallDir)' == ''">C:\Program Files (x86)\Steam\steamapps\common\PlateUp\PlateUp</PlateUpInstallDir>
+    <PlateUpWorkshopDir Condition="'$(PlateUpWorkshopDir)' == ''">C:\Program Files (x86)\Steam\steamapps\workshop\content\1599600</PlateUpWorkshopDir>
+    <PlateUpModsDir Condition="'$(PlateUpModsDir)' == ''">$(PlateUpInstallDir)\Mods</PlateUpModsDir>
+    <ModFolderName Condition="'$(ModFolderName)' == ''">ServiceStatsHUD</ModFolderName>
+    <WorkshopOutputDir>$(MSBuildProjectDirectory)\workshop\content</WorkshopOutputDir>
+    <LocalModOutputDir>$(PlateUpModsDir)\$(ModFolderName)\content</LocalModOutputDir>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <PlatformTarget>x64</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <PlatformTarget>x64</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Reference Include="0Harmony">
+      <HintPath>$(PlateUpWorkshopDir)\2898033283\0Harmony.dll</HintPath>
+    </Reference>
+    <Reference Include="Controllers">
+      <HintPath>$(PlateUpInstallDir)\PlateUp_Data\Managed\Controllers.dll</HintPath>
+    </Reference>
+    <Reference Include="Kitchen.Common">
+      <HintPath>$(PlateUpInstallDir)\PlateUp_Data\Managed\Kitchen.Common.dll</HintPath>
+    </Reference>
+    <Reference Include="Kitchen.FranchiseBuilderMode">
+      <HintPath>$(PlateUpInstallDir)\PlateUp_Data\Managed\Kitchen.FranchiseBuilderMode.dll</HintPath>
+    </Reference>
+    <Reference Include="Kitchen.FranchiseMode">
+      <HintPath>$(PlateUpInstallDir)\PlateUp_Data\Managed\Kitchen.FranchiseMode.dll</HintPath>
+    </Reference>
+    <Reference Include="Kitchen.GameData">
+      <HintPath>$(PlateUpInstallDir)\PlateUp_Data\Managed\Kitchen.GameData.dll</HintPath>
+    </Reference>
+    <Reference Include="Kitchen.Layouts">
+      <HintPath>$(PlateUpInstallDir)\PlateUp_Data\Managed\Kitchen.Layouts.dll</HintPath>
+    </Reference>
+    <Reference Include="Kitchen.Networking">
+      <HintPath>$(PlateUpInstallDir)\PlateUp_Data\Managed\Kitchen.Networking.dll</HintPath>
+    </Reference>
+    <Reference Include="Kitchen.Persistence">
+      <HintPath>$(PlateUpInstallDir)\PlateUp_Data\Managed\Kitchen.Persistence.dll</HintPath>
+    </Reference>
+    <Reference Include="Kitchen.PostgameMode">
+      <HintPath>$(PlateUpInstallDir)\PlateUp_Data\Managed\Kitchen.PostgameMode.dll</HintPath>
+    </Reference>
+    <Reference Include="Kitchen.ResearchMode">
+      <HintPath>$(PlateUpInstallDir)\PlateUp_Data\Managed\Kitchen.ResearchMode.dll</HintPath>
+    </Reference>
+    <Reference Include="Kitchen.RestaurantMode">
+      <HintPath>$(PlateUpInstallDir)\PlateUp_Data\Managed\Kitchen.RestaurantMode.dll</HintPath>
+    </Reference>
+    <Reference Include="KitchenLib">
+      <HintPath>$(PlateUpWorkshopDir)\2898069883\KitchenLib-Workshop.dll</HintPath>
+    </Reference>
+    <Reference Include="KitchenMode">
+      <HintPath>$(PlateUpInstallDir)\PlateUp_Data\Managed\KitchenMode.dll</HintPath>
+    </Reference>
+    <Reference Include="KitchenMods">
+      <HintPath>$(PlateUpInstallDir)\PlateUp_Data\Managed\KitchenMods.dll</HintPath>
+    </Reference>
+    <Reference Include="PreferenceSystem-Workshop">
+      <HintPath>$(PlateUpWorkshopDir)\2949018507\PreferenceSystem-Workshop.dll</HintPath>
+    </Reference>
+    <Reference Include="Newtonsoft.Json">
+      <HintPath>$(PlateUpInstallDir)\PlateUp_Data\Managed\Newtonsoft.Json.dll</HintPath>
+    </Reference>
+    <Reference Include="Sirenix.Serialization">
+      <HintPath>$(PlateUpInstallDir)\PlateUp_Data\Managed\Sirenix.Serialization.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="Unity.Collections">
+      <HintPath>$(PlateUpInstallDir)\PlateUp_Data\Managed\Unity.Collections.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.Entities">
+      <HintPath>$(PlateUpInstallDir)\PlateUp_Data\Managed\Unity.Entities.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.Mathematics">
+      <HintPath>$(PlateUpInstallDir)\PlateUp_Data\Managed\Unity.Mathematics.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.Serialization">
+      <HintPath>$(PlateUpInstallDir)\PlateUp_Data\Managed\Unity.Serialization.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.TextMeshPro">
+      <HintPath>$(PlateUpInstallDir)\PlateUp_Data\Managed\Unity.TextMeshPro.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine">
+      <HintPath>$(PlateUpInstallDir)\PlateUp_Data\Managed\UnityEngine.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.CoreModule">
+      <HintPath>$(PlateUpInstallDir)\PlateUp_Data\Managed\UnityEngine.CoreModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.ImageConversionModule">
+      <HintPath>$(PlateUpInstallDir)\PlateUp_Data\Managed\UnityEngine.ImageConversionModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.IMGUIModule">
+      <HintPath>$(PlateUpInstallDir)\PlateUp_Data\Managed\UnityEngine.IMGUIModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.TextCoreModule">
+      <HintPath>$(PlateUpInstallDir)\PlateUp_Data\Managed\UnityEngine.TextCoreModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.TextRenderingModule">
+      <HintPath>$(PlateUpInstallDir)\PlateUp_Data\Managed\UnityEngine.TextRenderingModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.UI">
+      <HintPath>$(PlateUpInstallDir)\PlateUp_Data\Managed\UnityEngine.UI.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.UIModule">
+      <HintPath>$(PlateUpInstallDir)\PlateUp_Data\Managed\UnityEngine.UIModule.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="**\*.cs" Exclude="bin\**\*;obj\**\*;workshop\**\*;ServiceStatsHUD.Tests\**\*" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="Assets\**\*.*" />
+    <Content Include="plateup_mod_metadata.json" />
+  </ItemGroup>
+
+  <Target Name="ValidatePlateUpSetup" BeforeTargets="BeforeBuild">
+    <Error Condition="!Exists('$(PlateUpInstallDir)\PlateUp.exe')" Text="PlateUp.exe was not found. Update PlateUpInstallDir in Local.props if your install path differs." />
+    <Error Condition="!Exists('$(PlateUpInstallDir)\PlateUp_Data\ModUploader.exe')" Text="ModUploader.exe was not found. PlateUp Workshop-era publishing uses PlateUp_Data\ModUploader.exe." />
+    <Error Condition="!Exists('$(PlateUpWorkshopDir)\2898033283\0Harmony.dll')" Text="Harmony workshop dependency is missing. Subscribe to item 2898033283." />
+    <Error Condition="!Exists('$(PlateUpWorkshopDir)\2898069883\KitchenLib-Workshop.dll')" Text="KitchenLib workshop dependency is missing. Subscribe to item 2898069883." />
+    <Error Condition="!Exists('$(PlateUpWorkshopDir)\2949018507\PreferenceSystem-Workshop.dll')" Text="PreferenceSystem workshop dependency is missing. Subscribe to item 2949018507." />
+  </Target>
+
+  <Target Name="CopyArtifactsForPlateUp" AfterTargets="Build">
+    <ItemGroup>
+      <BuiltArtifacts Include="$(TargetPath)" />
+      <BuiltArtifacts Include="$(TargetDir)$(TargetName).pdb" Condition="Exists('$(TargetDir)$(TargetName).pdb')" />
+      <AssetFiles Include="Assets\**\*.*" />
+      <MetadataFiles Include="plateup_mod_metadata.json" Condition="Exists('plateup_mod_metadata.json')" />
+    </ItemGroup>
+
+    <MakeDir Directories="$(WorkshopOutputDir)" />
+    <MakeDir Directories="$(LocalModOutputDir)" />
+    <MakeDir Directories="$(WorkshopOutputDir)\Assets" />
+    <MakeDir Directories="$(LocalModOutputDir)\Assets" />
+    <Copy SourceFiles="@(BuiltArtifacts)" DestinationFolder="$(WorkshopOutputDir)" SkipUnchangedFiles="true" />
+    <Copy SourceFiles="@(BuiltArtifacts)" DestinationFolder="$(LocalModOutputDir)" SkipUnchangedFiles="true" />
+    <Copy SourceFiles="@(MetadataFiles)" DestinationFolder="$(WorkshopOutputDir)" SkipUnchangedFiles="true" />
+    <Copy SourceFiles="@(MetadataFiles)" DestinationFolder="$(LocalModOutputDir)" SkipUnchangedFiles="true" />
+    <Copy SourceFiles="@(AssetFiles)" DestinationFiles="@(AssetFiles->'$(WorkshopOutputDir)\Assets\%(RecursiveDir)%(Filename)%(Extension)')" SkipUnchangedFiles="true" />
+    <Copy SourceFiles="@(AssetFiles)" DestinationFiles="@(AssetFiles->'$(LocalModOutputDir)\Assets\%(RecursiveDir)%(Filename)%(Extension)')" SkipUnchangedFiles="true" />
+  </Target>
+
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+</Project>

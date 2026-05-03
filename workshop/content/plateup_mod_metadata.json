@@ -1,0 +1,7 @@
+{
+  "name": "Service Stats HUD",
+  "guid": "dev.clay.plateup.servicestatshud",
+  "version": "0.1.0",
+  "compatibleVersions": ">=1.2.0",
+  "steamWorkshopItemID": ""
+}
