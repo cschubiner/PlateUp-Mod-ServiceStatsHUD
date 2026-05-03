@@ -9,7 +9,8 @@ Standalone PlateUp mod that adds a top-right debug-style HUD with per-player dai
 - `wash`: dishes washed and floor messes cleaned by completed player cleaning processes
 - `act`: generic player-attributed actions, including serving, ordering, washing, chopping-style interactions, dispenser/provider use, and compatible transfer/combine interactions
 - `dist`: player movement distance during the day
-- `idle`: idle time after 5 seconds without an attributed action
+- `idle`: idle time after 1 second without an attributed action
+- `asleep`: idle time after 5 seconds without an attributed action
 
 Players are hidden until they have served at least one dish by default. Other totals are still tracked while hidden, so they appear once that player earns their first serve.
 
@@ -18,7 +19,7 @@ Players are hidden until they have served at least one dish by default. Other to
 Open `Preferences` from the main menu or pause menu, then open `Service Stats HUD`.
 
 - Toggle the HUD on or off.
-- Hide or show orders, washed, actions, distance, and idle.
+- Hide or show orders, washed, actions, distance, and idle/asleep timers.
 - Keep zero-serve players hidden or show everyone.
 - Adjust text size from `30%` through `130%`.
 - Choose a loaded TMP font. `Alt Font 1` is the default, and `Default Font` remains selectable.
@@ -108,7 +109,8 @@ Run these from `ServiceStatsHUD\`.
 - Chopping and combining count as actions where the underlying interaction is supported.
 - Taking or creating items from provider-style machines, such as coffee machines, counts as an action.
 - Distance increases while players move during daytime.
-- Idle starts increasing after 5 seconds without an attributed action.
+- Idle starts increasing after 1 second without an attributed action.
+- Asleep starts increasing after 5 seconds without an attributed action.
 - Players with zero serves stay hidden unless `Show Everyone` is selected.
-- Once a player serves, their earlier orders, washes, actions, distance, and idle totals appear.
+- Once a player serves, their earlier orders, washes, actions, distance, idle, and asleep totals appear.
 - The HUD clears at the start of a new day and on relevant restaurant/HQ transitions.

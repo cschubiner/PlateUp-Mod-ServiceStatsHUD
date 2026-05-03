@@ -227,7 +227,7 @@ namespace KitchenServiceStatsHUD.Helpers
                     "show_idle",
                     ShowIdle,
                     new[] { true, false },
-                    new[] { "Show Idle", "Hide Idle" },
+                    new[] { "Show Idle/Asleep", "Hide Idle/Asleep" },
                     value => ShowIdle = value)
                 .AddOption(
                     "hide_zero_serve",

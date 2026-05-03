@@ -56,7 +56,7 @@ namespace KitchenServiceStatsHUD.Helpers
 
             if (showIdle)
             {
-                count++;
+                count += 2;
             }
 
             return count;
@@ -155,7 +155,8 @@ namespace KitchenServiceStatsHUD.Helpers
                     DishesWashed = player.DishesWashed,
                     ActionsPerformed = player.ActionsPerformed,
                     DistanceTravelled = player.DistanceTravelled,
-                    IdleTime = player.IdleTime
+                    IdleTime = player.IdleTime,
+                    AsleepTime = player.AsleepTime
                 });
             }
 
@@ -240,6 +241,7 @@ namespace KitchenServiceStatsHUD.Helpers
                 if (showIdle)
                 {
                     builder.Append("  idle ").Append(FormatDuration(card.IdleTime));
+                    builder.Append("  asleep ").Append(FormatDuration(card.AsleepTime));
                 }
 
                 builder.AppendLine();

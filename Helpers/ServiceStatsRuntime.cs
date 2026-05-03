@@ -8,7 +8,8 @@ namespace KitchenServiceStatsHUD.Helpers
     public static class ServiceStatsRuntime
     {
         private const float MaxMovementSampleDistance = 3f;
-        private const float IdleThresholdSeconds = 5f;
+        private const float IdleThresholdSeconds = 1f;
+        private const float AsleepThresholdSeconds = 5f;
 
         private static readonly Dictionary<int, ServiceStatsPlayerState> PlayerStats = new Dictionary<int, ServiceStatsPlayerState>();
         private static readonly Dictionary<int, ServiceStatsProcessSnapshot> CleaningProcesses = new Dictionary<int, ServiceStatsProcessSnapshot>();
@@ -399,6 +400,7 @@ namespace KitchenServiceStatsHUD.Helpers
             }
 
             state.IdleTime += ServiceStatsHudLogic.CalculateIdleDelta(state.SecondsSinceLastAction, deltaSeconds, IdleThresholdSeconds);
+            state.AsleepTime += ServiceStatsHudLogic.CalculateIdleDelta(state.SecondsSinceLastAction, deltaSeconds, AsleepThresholdSeconds);
             if (deltaSeconds > 0f)
             {
                 state.SecondsSinceLastAction += deltaSeconds;

@@ -15,6 +15,7 @@ namespace KitchenServiceStatsHUD.Helpers
         public int ActionsPerformed;
         public float DistanceTravelled;
         public float IdleTime;
+        public float AsleepTime;
         public float SecondsSinceLastAction;
 
         public void ResetDailyTotals()
@@ -25,6 +26,7 @@ namespace KitchenServiceStatsHUD.Helpers
             ActionsPerformed = 0;
             DistanceTravelled = 0f;
             IdleTime = 0f;
+            AsleepTime = 0f;
             SecondsSinceLastAction = 0f;
         }
     }
@@ -40,6 +42,7 @@ namespace KitchenServiceStatsHUD.Helpers
         public int ActionsPerformed;
         public float DistanceTravelled;
         public float IdleTime;
+        public float AsleepTime;
     }
 
     public class ServiceStatsHudState

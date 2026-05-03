@@ -23,7 +23,8 @@ namespace KitchenServiceStatsHUD.Tests
                 DishesWashed = 3,
                 ActionsPerformed = 9,
                 DistanceTravelled = 12.5f,
-                IdleTime = 6.5f
+                IdleTime = 6.5f,
+                AsleepTime = 2.5f
             };
 
             List<ServiceStatsCardViewModel> hiddenCards = ServiceStatsHudLogic.BuildVisibleCards(new[] { player }, true);
@@ -38,6 +39,7 @@ namespace KitchenServiceStatsHUD.Tests
             Assert.AreEqual(9, visibleCards[0].ActionsPerformed);
             Assert.AreEqual(12.5f, visibleCards[0].DistanceTravelled, 0.001f);
             Assert.AreEqual(6.5f, visibleCards[0].IdleTime, 0.001f);
+            Assert.AreEqual(2.5f, visibleCards[0].AsleepTime, 0.001f);
         }
 
         [TestMethod]
@@ -54,6 +56,7 @@ namespace KitchenServiceStatsHUD.Tests
                 ActionsPerformed = 11,
                 DistanceTravelled = 33.3f,
                 IdleTime = 18f,
+                AsleepTime = 14f,
                 SecondsSinceLastAction = 23f
             };
 
@@ -65,6 +68,7 @@ namespace KitchenServiceStatsHUD.Tests
             Assert.AreEqual(0, player.ActionsPerformed);
             Assert.AreEqual(0f, player.DistanceTravelled, 0.001f);
             Assert.AreEqual(0f, player.IdleTime, 0.001f);
+            Assert.AreEqual(0f, player.AsleepTime, 0.001f);
             Assert.AreEqual(0f, player.SecondsSinceLastAction, 0.001f);
             Assert.AreEqual("Morgan", player.ResolvedName);
             Assert.AreEqual(Color.magenta, player.BadgeColor);
@@ -135,7 +139,7 @@ namespace KitchenServiceStatsHUD.Tests
             Assert.AreEqual(1, ServiceStatsHudLogic.CountVisibleStats(false, false, false, false));
             Assert.AreEqual(3, ServiceStatsHudLogic.CountVisibleStats(true, false, true, false));
             Assert.AreEqual(5, ServiceStatsHudLogic.CountVisibleStats(true, true, true, true));
-            Assert.AreEqual(6, ServiceStatsHudLogic.CountVisibleStats(true, true, true, true, true));
+            Assert.AreEqual(7, ServiceStatsHudLogic.CountVisibleStats(true, true, true, true, true));
         }
 
         [TestMethod]
@@ -236,8 +240,11 @@ namespace KitchenServiceStatsHUD.Tests
         }
 
         [TestMethod]
-        public void CalculateIdleDelta_StartsOnlyAfterFiveSecondsSinceLastAction()
+        public void CalculateIdleDelta_CanUseIdleOrAsleepThresholds()
         {
+            Assert.AreEqual(0f, ServiceStatsHudLogic.CalculateIdleDelta(0f, 0.9f, 1f), 0.001f);
+            Assert.AreEqual(0.5f, ServiceStatsHudLogic.CalculateIdleDelta(0.5f, 1f, 1f), 0.001f);
+            Assert.AreEqual(2f, ServiceStatsHudLogic.CalculateIdleDelta(3f, 2f, 1f), 0.001f);
             Assert.AreEqual(0f, ServiceStatsHudLogic.CalculateIdleDelta(0f, 4.9f, 5f), 0.001f);
             Assert.AreEqual(0.5f, ServiceStatsHudLogic.CalculateIdleDelta(4.5f, 1f, 5f), 0.001f);
             Assert.AreEqual(2f, ServiceStatsHudLogic.CalculateIdleDelta(8f, 2f, 5f), 0.001f);
@@ -257,7 +264,8 @@ namespace KitchenServiceStatsHUD.Tests
                     DishesWashed = 1,
                     ActionsPerformed = 14,
                     DistanceTravelled = 12.34f,
-                    IdleTime = 6.2f
+                    IdleTime = 6.2f,
+                    AsleepTime = 2.2f
                 },
                 new ServiceStatsCardViewModel
                 {
@@ -268,15 +276,16 @@ namespace KitchenServiceStatsHUD.Tests
                     DishesWashed = 4,
                     ActionsPerformed = 7,
                     DistanceTravelled = 123.9f,
-                    IdleTime = 65.2f
+                    IdleTime = 65.2f,
+                    AsleepTime = 61.2f
                 }
             };
 
             string text = ServiceStatsHudLogic.BuildDebugText(cards, true, true, true, true, true);
 
             StringAssert.StartsWith(text, "SERVICE STATS");
-            StringAssert.Contains(text, "Clay  srv 2  ord 3  wash 1  act 14  dist 12.3  idle 6s");
-            StringAssert.Contains(text, "P3  srv 1  ord 0  wash 4  act 7  dist 124  idle 1m05s");
+            StringAssert.Contains(text, "Clay  srv 2  ord 3  wash 1  act 14  dist 12.3  idle 6s  asleep 2s");
+            StringAssert.Contains(text, "P3  srv 1  ord 0  wash 4  act 7  dist 124  idle 1m05s  asleep 1m01s");
         }
 
         [TestMethod]
@@ -453,7 +462,8 @@ namespace KitchenServiceStatsHUD.Tests
                     DishesWashed = 0,
                     ActionsPerformed = 14,
                     DistanceTravelled = 42.25f,
-                    IdleTime = 3.5f
+                    IdleTime = 3.5f,
+                    AsleepTime = 0.5f
                 },
                 new ServiceStatsPlayerState
                 {
@@ -465,7 +475,8 @@ namespace KitchenServiceStatsHUD.Tests
                     DishesWashed = 2,
                     ActionsPerformed = 11,
                     DistanceTravelled = 8.5f,
-                    IdleTime = 9f
+                    IdleTime = 9f,
+                    AsleepTime = 5f
                 }
             };
 
@@ -475,9 +486,11 @@ namespace KitchenServiceStatsHUD.Tests
             Assert.AreEqual(14, cards[0].ActionsPerformed);
             Assert.AreEqual(42.25f, cards[0].DistanceTravelled, 0.001f);
             Assert.AreEqual(3.5f, cards[0].IdleTime, 0.001f);
+            Assert.AreEqual(0.5f, cards[0].AsleepTime, 0.001f);
             Assert.AreEqual(11, cards[1].ActionsPerformed);
             Assert.AreEqual(8.5f, cards[1].DistanceTravelled, 0.001f);
             Assert.AreEqual(9f, cards[1].IdleTime, 0.001f);
+            Assert.AreEqual(5f, cards[1].AsleepTime, 0.001f);
         }
 
         [TestMethod]
