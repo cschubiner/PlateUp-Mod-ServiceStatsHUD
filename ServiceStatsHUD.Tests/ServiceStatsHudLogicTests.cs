@@ -10,6 +10,25 @@ namespace KitchenServiceStatsHUD.Tests
     [TestClass]
     public class ServiceStatsHudLogicTests
     {
+        [TestInitialize]
+        public void ResetSettingsBeforeTest()
+        {
+            SetPrivateStaticField("_manager", null);
+            SetPrivateStaticField("_preferenceReadWarningLogged", false);
+            SetPrivateStaticProperty("Enabled", true);
+            SetPrivateStaticProperty("ShowOrders", true);
+            SetPrivateStaticProperty("ShowWashed", true);
+            SetPrivateStaticProperty("ShowActions", true);
+            SetPrivateStaticProperty("ShowDistance", true);
+            SetPrivateStaticProperty("ShowIdle", true);
+            SetPrivateStaticProperty("HideZeroServePlayers", true);
+            SetPrivateStaticProperty("Scale", ServiceStatsScaleOption.Normal);
+            SetPrivateStaticProperty("Layout", ServiceStatsLayoutOption.CompactGrid);
+            SetPrivateStaticProperty("Font", ServiceStatsFontOption.Alternate1);
+            SetPrivateStaticProperty("YOffset", ServiceStatsYOffsetOption.Current);
+            SetPrivateStaticProperty("SplitThreshold", ServiceStatsSplitThresholdOption.Six);
+        }
+
         [TestMethod]
         public void HiddenUntilFirstServe_ButPreservesTrackedTotals()
         {
@@ -761,6 +780,25 @@ namespace KitchenServiceStatsHUD.Tests
         }
 
         [TestMethod]
+        public void SyncFromPreferences_AppliesSavedShowEveryoneBeforeMenuToggle()
+        {
+            InvokeApplyPreferenceSnapshot(hideZeroServePlayers: false);
+
+            Assert.IsFalse(ServiceStatsSettings.HideZeroServePlayers, "Saved Show Everyone should be applied without requiring a menu toggle.");
+
+            ServiceStatsPlayerState player = new ServiceStatsPlayerState
+            {
+                PlayerId = 0,
+                ResolvedName = "Clay",
+                BadgeColor = Color.white,
+                Served = 0
+            };
+
+            List<ServiceStatsCardViewModel> cards = ServiceStatsHudLogic.BuildVisibleCards(new[] { player }, ServiceStatsSettings.HideZeroServePlayers);
+            Assert.AreEqual(1, cards.Count);
+        }
+
+        [TestMethod]
         public void SettingsIndexMapping_ResolvesCurrentScaleLayoutAndSplitChoices()
         {
             ServiceStatsScaleOption[] scaleOptions = GetPrivateStaticField<ServiceStatsScaleOption[]>("ScaleOptions");
@@ -828,12 +866,61 @@ namespace KitchenServiceStatsHUD.Tests
             return (T)field.GetValue(null);
         }
 
+        private static void SetPrivateStaticField(string fieldName, object value)
+        {
+            FieldInfo field = typeof(ServiceStatsSettings).GetField(fieldName, BindingFlags.NonPublic | BindingFlags.Static);
+            Assert.IsNotNull(field, $"Expected private static field '{fieldName}' to exist on ServiceStatsSettings.");
+            field.SetValue(null, value);
+        }
+
+        private static void SetPrivateStaticProperty(string propertyName, object value)
+        {
+            PropertyInfo property = typeof(ServiceStatsSettings).GetProperty(propertyName, BindingFlags.Public | BindingFlags.Static);
+            Assert.IsNotNull(property, $"Expected static property '{propertyName}' to exist on ServiceStatsSettings.");
+            property.SetValue(null, value, null);
+        }
+
         private static int InvokeGetSelectedIndex<T>(T[] values, T currentValue)
         {
             MethodInfo method = typeof(ServiceStatsSettings).GetMethod("GetSelectedIndex", BindingFlags.NonPublic | BindingFlags.Static);
             Assert.IsNotNull(method, "Expected GetSelectedIndex to exist on ServiceStatsSettings.");
             MethodInfo genericMethod = method.MakeGenericMethod(typeof(T));
             return (int)genericMethod.Invoke(null, new object[] { values, currentValue });
+        }
+
+        private static void InvokeApplyPreferenceSnapshot(
+            bool? enabled = null,
+            bool? showOrders = null,
+            bool? showWashed = null,
+            bool? showActions = null,
+            bool? showDistance = null,
+            bool? showIdle = null,
+            bool? hideZeroServePlayers = null,
+            int? scaleIndex = null,
+            int? layoutIndex = null,
+            int? fontIndex = null,
+            int? yOffsetIndex = null,
+            int? splitThresholdIndex = null)
+        {
+            MethodInfo method = typeof(ServiceStatsSettings).GetMethod("ApplyPreferenceSnapshot", BindingFlags.NonPublic | BindingFlags.Static);
+            Assert.IsNotNull(method, "Expected ApplyPreferenceSnapshot to exist on ServiceStatsSettings.");
+            method.Invoke(
+                null,
+                new object[]
+                {
+                    enabled,
+                    showOrders,
+                    showWashed,
+                    showActions,
+                    showDistance,
+                    showIdle,
+                    hideZeroServePlayers,
+                    scaleIndex,
+                    layoutIndex,
+                    fontIndex,
+                    yOffsetIndex,
+                    splitThresholdIndex
+                });
         }
     }
 }

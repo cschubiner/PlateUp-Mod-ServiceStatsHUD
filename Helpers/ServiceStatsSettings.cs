@@ -60,6 +60,8 @@ namespace KitchenServiceStatsHUD.Helpers
     public static class ServiceStatsSettings
     {
         private static bool _registered;
+        private static PreferenceSystemManager _manager;
+        private static bool _preferenceReadWarningLogged;
         private static readonly ServiceStatsScaleOption[] ScaleOptions =
         {
             ServiceStatsScaleOption.Thirty,
@@ -269,6 +271,9 @@ namespace KitchenServiceStatsHUD.Helpers
                     SplitThresholdLabels,
                     value => SplitThreshold = SplitThresholdOptions[ClampIndex(value, SplitThresholdOptions.Length)]);
 
+            _manager = manager;
+            SyncFromPreferences();
+
             Type registryType = Type.GetType("PreferenceSystem.PreferenceSystemRegistry, PreferenceSystem-Workshop");
             MethodInfo addMethod = registryType?.GetMethod("Add", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static);
             if (addMethod == null)
@@ -281,6 +286,189 @@ namespace KitchenServiceStatsHUD.Helpers
             manager.RegisterMenu(PreferenceSystemManager.MenuType.MainMenu);
             manager.RegisterMenu(PreferenceSystemManager.MenuType.PauseMenu);
             _registered = true;
+        }
+
+        public static void SyncFromPreferences()
+        {
+            if (_manager == null)
+            {
+                return;
+            }
+
+            try
+            {
+                bool boolValue;
+                int intValue;
+                bool? enabled = null;
+                bool? showOrders = null;
+                bool? showWashed = null;
+                bool? showActions = null;
+                bool? showDistance = null;
+                bool? showIdle = null;
+                bool? hideZeroServePlayers = null;
+                int? scaleIndex = null;
+                int? layoutIndex = null;
+                int? fontIndex = null;
+                int? yOffsetIndex = null;
+                int? splitThresholdIndex = null;
+
+                if (_manager.TryGet("hud_enabled", out boolValue))
+                {
+                    enabled = boolValue;
+                }
+
+                if (_manager.TryGet("show_orders", out boolValue))
+                {
+                    showOrders = boolValue;
+                }
+
+                if (_manager.TryGet("show_washed", out boolValue))
+                {
+                    showWashed = boolValue;
+                }
+
+                if (_manager.TryGet("show_actions", out boolValue))
+                {
+                    showActions = boolValue;
+                }
+
+                if (_manager.TryGet("show_distance", out boolValue))
+                {
+                    showDistance = boolValue;
+                }
+
+                if (_manager.TryGet("show_idle", out boolValue))
+                {
+                    showIdle = boolValue;
+                }
+
+                if (_manager.TryGet("hide_zero_serve", out boolValue))
+                {
+                    hideZeroServePlayers = boolValue;
+                }
+
+                if (_manager.TryGet("hud_scale", out intValue))
+                {
+                    scaleIndex = intValue;
+                }
+
+                if (_manager.TryGet("hud_layout", out intValue))
+                {
+                    layoutIndex = intValue;
+                }
+
+                if (_manager.TryGet("hud_font", out intValue))
+                {
+                    fontIndex = intValue;
+                }
+
+                if (_manager.TryGet("hud_y_offset", out intValue))
+                {
+                    yOffsetIndex = intValue;
+                }
+
+                if (_manager.TryGet("split_threshold", out intValue))
+                {
+                    splitThresholdIndex = intValue;
+                }
+
+                ApplyPreferenceSnapshot(
+                    enabled,
+                    showOrders,
+                    showWashed,
+                    showActions,
+                    showDistance,
+                    showIdle,
+                    hideZeroServePlayers,
+                    scaleIndex,
+                    layoutIndex,
+                    fontIndex,
+                    yOffsetIndex,
+                    splitThresholdIndex);
+            }
+            catch (Exception exception)
+            {
+                if (!_preferenceReadWarningLogged)
+                {
+                    _preferenceReadWarningLogged = true;
+                    Mod.LogWarning("Service Stats HUD could not load saved preferences: " + exception.Message);
+                }
+            }
+        }
+
+        private static void ApplyPreferenceSnapshot(
+            bool? enabled,
+            bool? showOrders,
+            bool? showWashed,
+            bool? showActions,
+            bool? showDistance,
+            bool? showIdle,
+            bool? hideZeroServePlayers,
+            int? scaleIndex,
+            int? layoutIndex,
+            int? fontIndex,
+            int? yOffsetIndex,
+            int? splitThresholdIndex)
+        {
+            if (enabled.HasValue)
+            {
+                Enabled = enabled.Value;
+            }
+
+            if (showOrders.HasValue)
+            {
+                ShowOrders = showOrders.Value;
+            }
+
+            if (showWashed.HasValue)
+            {
+                ShowWashed = showWashed.Value;
+            }
+
+            if (showActions.HasValue)
+            {
+                ShowActions = showActions.Value;
+            }
+
+            if (showDistance.HasValue)
+            {
+                ShowDistance = showDistance.Value;
+            }
+
+            if (showIdle.HasValue)
+            {
+                ShowIdle = showIdle.Value;
+            }
+
+            if (hideZeroServePlayers.HasValue)
+            {
+                HideZeroServePlayers = hideZeroServePlayers.Value;
+            }
+
+            if (scaleIndex.HasValue)
+            {
+                Scale = ScaleOptions[ClampIndex(scaleIndex.Value, ScaleOptions.Length)];
+            }
+
+            if (layoutIndex.HasValue)
+            {
+                Layout = LayoutOptions[ClampIndex(layoutIndex.Value, LayoutOptions.Length)];
+            }
+
+            if (fontIndex.HasValue)
+            {
+                Font = FontOptions[ClampIndex(fontIndex.Value, FontOptions.Length)];
+            }
+
+            if (yOffsetIndex.HasValue)
+            {
+                YOffset = YOffsetOptions[ClampIndex(yOffsetIndex.Value, YOffsetOptions.Length)];
+            }
+
+            if (splitThresholdIndex.HasValue)
+            {
+                SplitThreshold = SplitThresholdOptions[ClampIndex(splitThresholdIndex.Value, SplitThresholdOptions.Length)];
+            }
         }
 
         private static int GetSelectedIndex<T>(T[] values, T currentValue)

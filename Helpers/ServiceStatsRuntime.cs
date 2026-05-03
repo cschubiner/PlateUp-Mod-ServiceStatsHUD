@@ -546,6 +546,8 @@ namespace KitchenServiceStatsHUD.Helpers
 
         public static ServiceStatsHudState BuildHudState()
         {
+            ServiceStatsSettings.SyncFromPreferences();
+
             if (!ServiceStatsSettings.Enabled)
             {
                 return ServiceStatsHudState.Empty;
