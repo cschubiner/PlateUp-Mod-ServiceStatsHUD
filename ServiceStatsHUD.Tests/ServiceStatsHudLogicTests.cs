@@ -16,14 +16,16 @@ namespace KitchenServiceStatsHUD.Tests
             SetPrivateStaticField("_manager", null);
             SetPrivateStaticField("_preferenceReadWarningLogged", false);
             SetPrivateStaticProperty("Enabled", true);
+            SetPrivateStaticProperty("ShowServed", true);
             SetPrivateStaticProperty("ShowOrders", true);
             SetPrivateStaticProperty("ShowWashed", true);
             SetPrivateStaticProperty("ShowActions", true);
             SetPrivateStaticProperty("ShowDistance", true);
             SetPrivateStaticProperty("ShowIdle", true);
+            SetPrivateStaticProperty("IdleThresholdSeconds", 1);
+            SetPrivateStaticProperty("AsleepThresholdSeconds", 5);
             SetPrivateStaticProperty("HideZeroServePlayers", true);
             SetPrivateStaticProperty("Scale", ServiceStatsScaleOption.Normal);
-            SetPrivateStaticProperty("Layout", ServiceStatsLayoutOption.CompactGrid);
             SetPrivateStaticProperty("Font", ServiceStatsFontOption.Alternate1);
             SetPrivateStaticProperty("YOffset", ServiceStatsYOffsetOption.Current);
             SetPrivateStaticProperty("SplitThreshold", ServiceStatsSplitThresholdOption.Six);
@@ -153,12 +155,14 @@ namespace KitchenServiceStatsHUD.Tests
         }
 
         [TestMethod]
-        public void CountVisibleStats_AlwaysIncludesServedAndOnlyEnabledOptionalStats()
+        public void CountVisibleStats_UsesEnabledStatsIncludingOptionalServed()
         {
             Assert.AreEqual(1, ServiceStatsHudLogic.CountVisibleStats(false, false, false, false));
             Assert.AreEqual(3, ServiceStatsHudLogic.CountVisibleStats(true, false, true, false));
             Assert.AreEqual(5, ServiceStatsHudLogic.CountVisibleStats(true, true, true, true));
             Assert.AreEqual(7, ServiceStatsHudLogic.CountVisibleStats(true, true, true, true, true));
+            Assert.AreEqual(0, ServiceStatsHudLogic.CountVisibleStats(false, false, false, false, false, false));
+            Assert.AreEqual(6, ServiceStatsHudLogic.CountVisibleStats(false, true, true, true, true, true));
         }
 
         [TestMethod]
@@ -170,7 +174,7 @@ namespace KitchenServiceStatsHUD.Tests
         }
 
         [TestMethod]
-        public void CalculatePanelFit_KeepsRequestedLayoutWhenItAlreadyFits()
+        public void CalculatePanelFit_KeepsRequestedColumnsWhenTheyAlreadyFit()
         {
             ServiceStatsPanelFit fit = ServiceStatsHudLogic.CalculatePanelFit(
                 visiblePlayerCount: 2,
@@ -330,6 +334,28 @@ namespace KitchenServiceStatsHUD.Tests
         }
 
         [TestMethod]
+        public void BuildDebugText_CanHideServedStat()
+        {
+            List<ServiceStatsCardViewModel> cards = new List<ServiceStatsCardViewModel>
+            {
+                new ServiceStatsCardViewModel
+                {
+                    PlayerId = 1,
+                    DisplayName = "Sam",
+                    Served = 5,
+                    OrdersTaken = 8,
+                    DishesWashed = 9,
+                    ActionsPerformed = 10,
+                    DistanceTravelled = 11f
+                }
+            };
+
+            string text = ServiceStatsHudLogic.BuildDebugText(cards, false, true, false, true, false, false);
+
+            Assert.AreEqual("SERVICE STATS\r\nSam  ord 8  act 10", text);
+        }
+
+        [TestMethod]
         public void CalculateAnchoredYOffset_KeepsCurrentMarginOrUsesScreenPercent()
         {
             Assert.AreEqual(-24f, ServiceStatsHudLogic.CalculateAnchoredYOffset(0f, 1080f, 24f), 0.001f);
@@ -451,7 +477,7 @@ namespace KitchenServiceStatsHUD.Tests
         }
 
         [TestMethod]
-        public void DoesVerticalContentFit_CatchesSpotlightStyleClipping()
+        public void DoesVerticalContentFit_CatchesContentClipping()
         {
             Assert.IsFalse(ServiceStatsHudLogic.DoesVerticalContentFit(
                 cardHeight: 154f,
@@ -534,17 +560,17 @@ namespace KitchenServiceStatsHUD.Tests
                 }
             };
 
-            ServiceStatsHudState state = new ServiceStatsHudState(cards, 2, true, false, false, true, 1.25f, ServiceStatsLayoutOption.WideRibbon);
+            ServiceStatsHudState state = new ServiceStatsHudState(cards, 2, true, false, false, true, 1.25f);
 
             Assert.AreEqual(1, state.Cards.Count);
             Assert.AreEqual(2, state.ColumnCount);
+            Assert.IsTrue(state.ShowServed);
             Assert.IsTrue(state.ShowOrders);
             Assert.IsFalse(state.ShowWashed);
             Assert.IsFalse(state.ShowActions);
             Assert.IsTrue(state.ShowDistance);
             Assert.IsTrue(state.ShowIdle);
             Assert.AreEqual(1.25f, state.ScaleMultiplier);
-            Assert.AreEqual(ServiceStatsLayoutOption.WideRibbon, state.Layout);
             Assert.AreEqual(ServiceStatsFontOption.Default, state.Font);
             Assert.AreEqual(9, state.Cards[0].ActionsPerformed);
             Assert.AreEqual(10f, state.Cards[0].DistanceTravelled, 0.001f);
@@ -561,7 +587,6 @@ namespace KitchenServiceStatsHUD.Tests
                 true,
                 true,
                 1f,
-                ServiceStatsLayoutOption.CompactGrid,
                 ServiceStatsFontOption.Alternate2);
 
             Assert.AreEqual(ServiceStatsFontOption.Alternate2, state.Font);
@@ -579,7 +604,6 @@ namespace KitchenServiceStatsHUD.Tests
                 true,
                 true,
                 1f,
-                ServiceStatsLayoutOption.CompactGrid,
                 ServiceStatsFontOption.Default,
                 0.60f);
 
@@ -642,60 +666,6 @@ namespace KitchenServiceStatsHUD.Tests
             Assert.AreEqual(0.60f, ResolveScale(ServiceStatsScaleOption.Sixty), 0.001f);
             Assert.AreEqual(0.75f, ResolveScale(ServiceStatsScaleOption.SeventyFive), 0.001f);
             Assert.AreEqual(1.00f, ResolveScale(ServiceStatsScaleOption.Normal), 0.001f);
-        }
-
-        [TestMethod]
-        public void HudLayouts_ExposeThreeDistinctOptions()
-        {
-            ServiceStatsLayoutOption[] layouts =
-            {
-                ServiceStatsLayoutOption.CompactGrid,
-                ServiceStatsLayoutOption.WideRibbon,
-                ServiceStatsLayoutOption.TallStack,
-                ServiceStatsLayoutOption.MiniChips,
-                ServiceStatsLayoutOption.Spotlight,
-                ServiceStatsLayoutOption.SlimColumn
-            };
-
-            Assert.AreEqual(6, layouts.Length);
-            Assert.AreNotEqual(layouts[0], layouts[1]);
-            Assert.AreNotEqual(layouts[1], layouts[2]);
-            Assert.AreNotEqual(layouts[0], layouts[2]);
-            Assert.AreNotEqual(layouts[2], layouts[3]);
-            Assert.AreNotEqual(layouts[3], layouts[4]);
-            Assert.AreNotEqual(layouts[4], layouts[5]);
-        }
-
-        [TestMethod]
-        public void SettingsLayoutMenu_ExposesAllSixIndexedOptions()
-        {
-            ServiceStatsLayoutOption[] options = GetPrivateStaticField<ServiceStatsLayoutOption[]>("LayoutOptions");
-            string[] labels = GetPrivateStaticField<string[]>("LayoutLabels");
-
-            CollectionAssert.AreEqual(
-                new[]
-                {
-                    ServiceStatsLayoutOption.CompactGrid,
-                    ServiceStatsLayoutOption.WideRibbon,
-                    ServiceStatsLayoutOption.TallStack,
-                    ServiceStatsLayoutOption.MiniChips,
-                    ServiceStatsLayoutOption.Spotlight,
-                    ServiceStatsLayoutOption.SlimColumn
-                },
-                options);
-            CollectionAssert.AreEqual(
-                new[]
-                {
-                    "Compact Grid",
-                    "Wide Ribbon",
-                    "Tall Stack",
-                    "Mini Chips",
-                    "Spotlight",
-                    "Slim Column"
-                },
-                labels);
-            Assert.AreEqual(options.Length, labels.Length);
-            Assert.AreEqual(6, options.Length);
         }
 
         [TestMethod]
@@ -779,8 +749,52 @@ namespace KitchenServiceStatsHUD.Tests
         [TestMethod]
         public void SettingsDistanceToggle_DefaultsVisible()
         {
+            Assert.IsTrue(ServiceStatsSettings.ShowServed);
             Assert.IsTrue(ServiceStatsSettings.ShowDistance);
             Assert.IsTrue(ServiceStatsSettings.ShowIdle);
+        }
+
+        [TestMethod]
+        public void SettingsIdleThresholdMenus_DefaultCurrentValuesAndExposeOneToTwentySeconds()
+        {
+            int[] options = GetPrivateStaticField<int[]>("ThresholdSecondOptions");
+            string[] labels = GetPrivateStaticField<string[]>("ThresholdSecondLabels");
+
+            CollectionAssert.AreEqual(
+                new[] { 1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 20 },
+                options);
+            CollectionAssert.AreEqual(
+                new[] { "1s", "3s", "5s", "7s", "9s", "11s", "13s", "15s", "17s", "19s", "20s" },
+                labels);
+            Assert.AreEqual(options.Length, labels.Length);
+            Assert.AreEqual(1, ServiceStatsSettings.IdleThresholdSeconds);
+            Assert.AreEqual(5, ServiceStatsSettings.AsleepThresholdSeconds);
+        }
+
+        [TestMethod]
+        public void SyncFromPreferences_AppliesSavedServedVisibility()
+        {
+            InvokeApplyPreferenceSnapshot(showServed: false);
+
+            Assert.IsFalse(ServiceStatsSettings.ShowServed);
+        }
+
+        [TestMethod]
+        public void SyncFromPreferences_AppliesSavedIdleAndAsleepThresholds()
+        {
+            InvokeApplyPreferenceSnapshot(idleThresholdSeconds: 3, asleepThresholdSeconds: 19);
+
+            Assert.AreEqual(3, ServiceStatsSettings.IdleThresholdSeconds);
+            Assert.AreEqual(19, ServiceStatsSettings.AsleepThresholdSeconds);
+        }
+
+        [TestMethod]
+        public void SyncFromPreferences_NormalizesIdleThresholdsToNearestOption()
+        {
+            InvokeApplyPreferenceSnapshot(idleThresholdSeconds: 4, asleepThresholdSeconds: 99);
+
+            Assert.AreEqual(3, ServiceStatsSettings.IdleThresholdSeconds);
+            Assert.AreEqual(20, ServiceStatsSettings.AsleepThresholdSeconds);
         }
 
         [TestMethod]
@@ -803,17 +817,15 @@ namespace KitchenServiceStatsHUD.Tests
         }
 
         [TestMethod]
-        public void SettingsIndexMapping_ResolvesCurrentScaleLayoutAndSplitChoices()
+        public void SettingsIndexMapping_ResolvesCurrentScaleFontYOffsetAndSplitChoices()
         {
             ServiceStatsScaleOption[] scaleOptions = GetPrivateStaticField<ServiceStatsScaleOption[]>("ScaleOptions");
-            ServiceStatsLayoutOption[] layoutOptions = GetPrivateStaticField<ServiceStatsLayoutOption[]>("LayoutOptions");
             ServiceStatsFontOption[] fontOptions = GetPrivateStaticField<ServiceStatsFontOption[]>("FontOptions");
             ServiceStatsYOffsetOption[] yOffsetOptions = GetPrivateStaticField<ServiceStatsYOffsetOption[]>("YOffsetOptions");
             ServiceStatsSplitThresholdOption[] splitOptions = GetPrivateStaticField<ServiceStatsSplitThresholdOption[]>("SplitThresholdOptions");
 
             Assert.AreEqual(0, InvokeGetSelectedIndex(scaleOptions, ServiceStatsScaleOption.Thirty));
             Assert.AreEqual(5, InvokeGetSelectedIndex(scaleOptions, ServiceStatsScaleOption.Normal));
-            Assert.AreEqual(5, InvokeGetSelectedIndex(layoutOptions, ServiceStatsLayoutOption.SlimColumn));
             Assert.AreEqual(0, InvokeGetSelectedIndex(fontOptions, ServiceStatsFontOption.Default));
             Assert.AreEqual(3, InvokeGetSelectedIndex(fontOptions, ServiceStatsFontOption.Alternate3));
             Assert.AreEqual(0, InvokeGetSelectedIndex(yOffsetOptions, ServiceStatsYOffsetOption.Current));
@@ -894,14 +906,16 @@ namespace KitchenServiceStatsHUD.Tests
 
         private static void InvokeApplyPreferenceSnapshot(
             bool? enabled = null,
+            bool? showServed = null,
             bool? showOrders = null,
             bool? showWashed = null,
             bool? showActions = null,
             bool? showDistance = null,
             bool? showIdle = null,
             bool? hideZeroServePlayers = null,
+            int? idleThresholdSeconds = null,
+            int? asleepThresholdSeconds = null,
             int? scaleIndex = null,
-            int? layoutIndex = null,
             int? fontIndex = null,
             int? yOffsetIndex = null,
             int? splitThresholdIndex = null)
@@ -913,14 +927,16 @@ namespace KitchenServiceStatsHUD.Tests
                 new object[]
                 {
                     enabled,
+                    showServed,
                     showOrders,
                     showWashed,
                     showActions,
                     showDistance,
                     showIdle,
                     hideZeroServePlayers,
+                    idleThresholdSeconds,
+                    asleepThresholdSeconds,
                     scaleIndex,
-                    layoutIndex,
                     fontIndex,
                     yOffsetIndex,
                     splitThresholdIndex

@@ -28,12 +28,17 @@ namespace KitchenServiceStatsHUD.Helpers
 
         public static int CountVisibleStats(bool showOrders, bool showWashed, bool showActions, bool showDistance)
         {
-            return CountVisibleStats(showOrders, showWashed, showActions, showDistance, false);
+            return CountVisibleStats(true, showOrders, showWashed, showActions, showDistance, false);
         }
 
         public static int CountVisibleStats(bool showOrders, bool showWashed, bool showActions, bool showDistance, bool showIdle)
         {
-            int count = 1;
+            return CountVisibleStats(true, showOrders, showWashed, showActions, showDistance, showIdle);
+        }
+
+        public static int CountVisibleStats(bool showServed, bool showOrders, bool showWashed, bool showActions, bool showDistance, bool showIdle)
+        {
+            int count = showServed ? 1 : 0;
             if (showOrders)
             {
                 count++;
@@ -193,10 +198,15 @@ namespace KitchenServiceStatsHUD.Helpers
 
         public static string BuildDebugText(IList<ServiceStatsCardViewModel> cards, bool showOrders, bool showWashed, bool showActions, bool showDistance)
         {
-            return BuildDebugText(cards, showOrders, showWashed, showActions, showDistance, false);
+            return BuildDebugText(cards, true, showOrders, showWashed, showActions, showDistance, false);
         }
 
         public static string BuildDebugText(IList<ServiceStatsCardViewModel> cards, bool showOrders, bool showWashed, bool showActions, bool showDistance, bool showIdle)
+        {
+            return BuildDebugText(cards, true, showOrders, showWashed, showActions, showDistance, showIdle);
+        }
+
+        public static string BuildDebugText(IList<ServiceStatsCardViewModel> cards, bool showServed, bool showOrders, bool showWashed, bool showActions, bool showDistance, bool showIdle)
         {
             if (cards == null || cards.Count == 0)
             {
@@ -216,7 +226,11 @@ namespace KitchenServiceStatsHUD.Helpers
 
                 string name = string.IsNullOrWhiteSpace(card.DisplayName) ? BuildFallbackLabel(card.PlayerId) : card.DisplayName.Trim();
                 builder.Append(name);
-                builder.Append("  srv ").Append(card.Served);
+
+                if (showServed)
+                {
+                    builder.Append("  srv ").Append(card.Served);
+                }
 
                 if (showOrders)
                 {

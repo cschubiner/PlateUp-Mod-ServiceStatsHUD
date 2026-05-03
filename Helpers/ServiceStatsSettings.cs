@@ -24,16 +24,6 @@ namespace KitchenServiceStatsHUD.Helpers
         Eight = 8
     }
 
-    public enum ServiceStatsLayoutOption
-    {
-        CompactGrid,
-        WideRibbon,
-        TallStack,
-        MiniChips,
-        Spotlight,
-        SlimColumn
-    }
-
     public enum ServiceStatsFontOption
     {
         Default,
@@ -74,16 +64,8 @@ namespace KitchenServiceStatsHUD.Helpers
             ServiceStatsScaleOption.ExtraLarge
         };
         private static readonly string[] ScaleLabels = { "30%", "45%", "60%", "75%", "85%", "100%", "115%", "130%" };
-        private static readonly ServiceStatsLayoutOption[] LayoutOptions =
-        {
-            ServiceStatsLayoutOption.CompactGrid,
-            ServiceStatsLayoutOption.WideRibbon,
-            ServiceStatsLayoutOption.TallStack,
-            ServiceStatsLayoutOption.MiniChips,
-            ServiceStatsLayoutOption.Spotlight,
-            ServiceStatsLayoutOption.SlimColumn
-        };
-        private static readonly string[] LayoutLabels = { "Compact Grid", "Wide Ribbon", "Tall Stack", "Mini Chips", "Spotlight", "Slim Column" };
+        private static readonly int[] ThresholdSecondOptions = { 1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 20 };
+        private static readonly string[] ThresholdSecondLabels = { "1s", "3s", "5s", "7s", "9s", "11s", "13s", "15s", "17s", "19s", "20s" };
         private static readonly ServiceStatsFontOption[] FontOptions =
         {
             ServiceStatsFontOption.Default,
@@ -116,14 +98,16 @@ namespace KitchenServiceStatsHUD.Helpers
         private static readonly string[] SplitThresholdLabels = { "Split After 4", "Split After 6", "Split After 8" };
 
         public static bool Enabled { get; private set; } = true;
+        public static bool ShowServed { get; private set; } = true;
         public static bool ShowOrders { get; private set; } = true;
         public static bool ShowWashed { get; private set; } = true;
         public static bool ShowActions { get; private set; } = true;
         public static bool ShowDistance { get; private set; } = true;
         public static bool ShowIdle { get; private set; } = true;
+        public static int IdleThresholdSeconds { get; private set; } = 1;
+        public static int AsleepThresholdSeconds { get; private set; } = 5;
         public static bool HideZeroServePlayers { get; private set; } = true;
         public static ServiceStatsScaleOption Scale { get; private set; } = ServiceStatsScaleOption.Normal;
-        public static ServiceStatsLayoutOption Layout { get; private set; } = ServiceStatsLayoutOption.CompactGrid;
         public static ServiceStatsFontOption Font { get; private set; } = ServiceStatsFontOption.Alternate1;
         public static ServiceStatsYOffsetOption YOffset { get; private set; } = ServiceStatsYOffsetOption.Current;
         public static ServiceStatsSplitThresholdOption SplitThreshold { get; private set; } = ServiceStatsSplitThresholdOption.Six;
@@ -194,13 +178,19 @@ namespace KitchenServiceStatsHUD.Helpers
             PreferenceSystemManager manager = new PreferenceSystemManager(Mod.MOD_GUID, Mod.MOD_NAME)
                 .AddSubmenu("Service Stats HUD", "service_stats_hud", false)
                 .AddLabel("Scoreboard Settings")
-                .AddInfo("Change visibility and layout from the main menu or during a run.")
+                .AddInfo("Change visibility, font, size, and position from the main menu or during a run.")
                 .AddOption(
                     "hud_enabled",
                     Enabled,
                     new[] { true, false },
                     new[] { "HUD On", "HUD Off" },
                     value => Enabled = value)
+                .AddOption(
+                    "show_served",
+                    ShowServed,
+                    new[] { true, false },
+                    new[] { "Show Served", "Hide Served" },
+                    value => ShowServed = value)
                 .AddOption(
                     "show_orders",
                     ShowOrders,
@@ -232,6 +222,20 @@ namespace KitchenServiceStatsHUD.Helpers
                     new[] { "Show Idle/Asleep", "Hide Idle/Asleep" },
                     value => ShowIdle = value)
                 .AddOption(
+                    "idle_threshold_seconds",
+                    IdleThresholdSeconds,
+                    ThresholdSecondOptions,
+                    ThresholdSecondLabels,
+                    value => IdleThresholdSeconds = NormalizeThresholdSeconds(value),
+                    true)
+                .AddOption(
+                    "asleep_threshold_seconds",
+                    AsleepThresholdSeconds,
+                    ThresholdSecondOptions,
+                    ThresholdSecondLabels,
+                    value => AsleepThresholdSeconds = NormalizeThresholdSeconds(value),
+                    true)
+                .AddOption(
                     "hide_zero_serve",
                     HideZeroServePlayers,
                     new[] { true, false },
@@ -243,13 +247,6 @@ namespace KitchenServiceStatsHUD.Helpers
                     Enumerable.Range(0, ScaleOptions.Length).ToArray(),
                     ScaleLabels,
                     value => Scale = ScaleOptions[ClampIndex(value, ScaleOptions.Length)])
-                .AddOption(
-                    "hud_layout",
-                    GetSelectedIndex(LayoutOptions, Layout),
-                    Enumerable.Range(0, LayoutOptions.Length).ToArray(),
-                    LayoutLabels,
-                    value => Layout = LayoutOptions[ClampIndex(value, LayoutOptions.Length)],
-                    true)
                 .AddOption(
                     "hud_font",
                     GetSelectedIndex(FontOptions, Font),
@@ -300,14 +297,16 @@ namespace KitchenServiceStatsHUD.Helpers
                 bool boolValue;
                 int intValue;
                 bool? enabled = null;
+                bool? showServed = null;
                 bool? showOrders = null;
                 bool? showWashed = null;
                 bool? showActions = null;
                 bool? showDistance = null;
                 bool? showIdle = null;
                 bool? hideZeroServePlayers = null;
+                int? idleThresholdSeconds = null;
+                int? asleepThresholdSeconds = null;
                 int? scaleIndex = null;
-                int? layoutIndex = null;
                 int? fontIndex = null;
                 int? yOffsetIndex = null;
                 int? splitThresholdIndex = null;
@@ -315,6 +314,11 @@ namespace KitchenServiceStatsHUD.Helpers
                 if (_manager.TryGet("hud_enabled", out boolValue))
                 {
                     enabled = boolValue;
+                }
+
+                if (_manager.TryGet("show_served", out boolValue))
+                {
+                    showServed = boolValue;
                 }
 
                 if (_manager.TryGet("show_orders", out boolValue))
@@ -342,6 +346,16 @@ namespace KitchenServiceStatsHUD.Helpers
                     showIdle = boolValue;
                 }
 
+                if (_manager.TryGet("idle_threshold_seconds", out intValue))
+                {
+                    idleThresholdSeconds = intValue;
+                }
+
+                if (_manager.TryGet("asleep_threshold_seconds", out intValue))
+                {
+                    asleepThresholdSeconds = intValue;
+                }
+
                 if (_manager.TryGet("hide_zero_serve", out boolValue))
                 {
                     hideZeroServePlayers = boolValue;
@@ -350,11 +364,6 @@ namespace KitchenServiceStatsHUD.Helpers
                 if (_manager.TryGet("hud_scale", out intValue))
                 {
                     scaleIndex = intValue;
-                }
-
-                if (_manager.TryGet("hud_layout", out intValue))
-                {
-                    layoutIndex = intValue;
                 }
 
                 if (_manager.TryGet("hud_font", out intValue))
@@ -374,14 +383,16 @@ namespace KitchenServiceStatsHUD.Helpers
 
                 ApplyPreferenceSnapshot(
                     enabled,
+                    showServed,
                     showOrders,
                     showWashed,
                     showActions,
                     showDistance,
                     showIdle,
                     hideZeroServePlayers,
+                    idleThresholdSeconds,
+                    asleepThresholdSeconds,
                     scaleIndex,
-                    layoutIndex,
                     fontIndex,
                     yOffsetIndex,
                     splitThresholdIndex);
@@ -398,14 +409,16 @@ namespace KitchenServiceStatsHUD.Helpers
 
         private static void ApplyPreferenceSnapshot(
             bool? enabled,
+            bool? showServed,
             bool? showOrders,
             bool? showWashed,
             bool? showActions,
             bool? showDistance,
             bool? showIdle,
             bool? hideZeroServePlayers,
+            int? idleThresholdSeconds,
+            int? asleepThresholdSeconds,
             int? scaleIndex,
-            int? layoutIndex,
             int? fontIndex,
             int? yOffsetIndex,
             int? splitThresholdIndex)
@@ -413,6 +426,11 @@ namespace KitchenServiceStatsHUD.Helpers
             if (enabled.HasValue)
             {
                 Enabled = enabled.Value;
+            }
+
+            if (showServed.HasValue)
+            {
+                ShowServed = showServed.Value;
             }
 
             if (showOrders.HasValue)
@@ -445,14 +463,19 @@ namespace KitchenServiceStatsHUD.Helpers
                 HideZeroServePlayers = hideZeroServePlayers.Value;
             }
 
+            if (idleThresholdSeconds.HasValue)
+            {
+                IdleThresholdSeconds = NormalizeThresholdSeconds(idleThresholdSeconds.Value);
+            }
+
+            if (asleepThresholdSeconds.HasValue)
+            {
+                AsleepThresholdSeconds = NormalizeThresholdSeconds(asleepThresholdSeconds.Value);
+            }
+
             if (scaleIndex.HasValue)
             {
                 Scale = ScaleOptions[ClampIndex(scaleIndex.Value, ScaleOptions.Length)];
-            }
-
-            if (layoutIndex.HasValue)
-            {
-                Layout = LayoutOptions[ClampIndex(layoutIndex.Value, LayoutOptions.Length)];
             }
 
             if (fontIndex.HasValue)
@@ -475,6 +498,24 @@ namespace KitchenServiceStatsHUD.Helpers
         {
             int index = Array.IndexOf(values, currentValue);
             return index >= 0 ? index : 0;
+        }
+
+        private static int NormalizeThresholdSeconds(int value)
+        {
+            int closest = ThresholdSecondOptions[0];
+            int closestDistance = Math.Abs(value - closest);
+            for (int index = 1; index < ThresholdSecondOptions.Length; index++)
+            {
+                int option = ThresholdSecondOptions[index];
+                int distance = Math.Abs(value - option);
+                if (distance < closestDistance)
+                {
+                    closest = option;
+                    closestDistance = distance;
+                }
+            }
+
+            return closest;
         }
 
         private static int ClampIndex(int index, int length)

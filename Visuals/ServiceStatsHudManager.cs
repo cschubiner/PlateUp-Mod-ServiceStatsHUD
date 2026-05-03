@@ -45,7 +45,7 @@ namespace KitchenServiceStatsHUD.Visuals
 
             string debugText = state == null
                 ? string.Empty
-                : ServiceStatsHudLogic.BuildDebugText(state.Cards, state.ShowOrders, state.ShowWashed, state.ShowActions, state.ShowDistance, state.ShowIdle);
+                : ServiceStatsHudLogic.BuildDebugText(state.Cards, state.ShowServed, state.ShowOrders, state.ShowWashed, state.ShowActions, state.ShowDistance, state.ShowIdle);
 
             if (string.IsNullOrEmpty(debugText))
             {

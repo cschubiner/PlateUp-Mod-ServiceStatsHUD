@@ -8,8 +8,6 @@ namespace KitchenServiceStatsHUD.Helpers
     public static class ServiceStatsRuntime
     {
         private const float MaxMovementSampleDistance = 3f;
-        private const float IdleThresholdSeconds = 1f;
-        private const float AsleepThresholdSeconds = 5f;
 
         private static readonly Dictionary<int, ServiceStatsPlayerState> PlayerStats = new Dictionary<int, ServiceStatsPlayerState>();
         private static readonly Dictionary<int, ServiceStatsProcessSnapshot> CleaningProcesses = new Dictionary<int, ServiceStatsProcessSnapshot>();
@@ -402,8 +400,8 @@ namespace KitchenServiceStatsHUD.Helpers
                 return;
             }
 
-            state.IdleTime += ServiceStatsHudLogic.CalculateIdleDelta(state.SecondsSinceLastAction, deltaSeconds, IdleThresholdSeconds);
-            state.AsleepTime += ServiceStatsHudLogic.CalculateIdleDelta(state.SecondsSinceLastAction, deltaSeconds, AsleepThresholdSeconds);
+            state.IdleTime += ServiceStatsHudLogic.CalculateIdleDelta(state.SecondsSinceLastAction, deltaSeconds, ServiceStatsSettings.IdleThresholdSeconds);
+            state.AsleepTime += ServiceStatsHudLogic.CalculateIdleDelta(state.SecondsSinceLastAction, deltaSeconds, ServiceStatsSettings.AsleepThresholdSeconds);
             if (deltaSeconds > 0f)
             {
                 state.SecondsSinceLastAction += deltaSeconds;
@@ -565,13 +563,13 @@ namespace KitchenServiceStatsHUD.Helpers
             return new ServiceStatsHudState(
                 cards,
                 ServiceStatsHudLogic.CalculateColumnCount(cards.Count, (int) ServiceStatsSettings.SplitThreshold),
+                ServiceStatsSettings.ShowServed,
                 ServiceStatsSettings.ShowOrders,
                 ServiceStatsSettings.ShowWashed,
                 ServiceStatsSettings.ShowActions,
                 ServiceStatsSettings.ShowDistance,
                 ServiceStatsSettings.ShowIdle,
                 ServiceStatsSettings.ScaleMultiplier,
-                ServiceStatsSettings.Layout,
                 ServiceStatsSettings.Font,
                 ServiceStatsSettings.YOffsetScreenPercent);
         }
