@@ -100,8 +100,8 @@ namespace KitchenServiceStatsHUD.Helpers
         public static bool Enabled { get; private set; } = true;
         public static bool ShowServed { get; private set; } = true;
         public static bool ShowOrders { get; private set; } = true;
-        public static bool ShowWashed { get; private set; } = true;
-        public static bool ShowActions { get; private set; } = true;
+        public static bool ShowWashed { get; private set; } = false;
+        public static bool ShowActions { get; private set; } = false;
         public static bool ShowDistance { get; private set; } = true;
         public static bool ShowIdle { get; private set; } = true;
         public static int IdleThresholdSeconds { get; private set; } = 1;

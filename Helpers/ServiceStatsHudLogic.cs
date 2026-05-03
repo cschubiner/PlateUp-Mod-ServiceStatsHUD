@@ -378,6 +378,13 @@ namespace KitchenServiceStatsHUD.Helpers
             return interactionResult == performed && (interactionType == grab || interactionType == act);
         }
 
+        public static bool ShouldCreditWashFromInteractionAttempt(int interactionType, int interactionResult, bool isFloorMessTarget)
+        {
+            const int act = 2;
+            const int performed = 2;
+            return isFloorMessTarget && interactionResult == performed && interactionType == act;
+        }
+
         public static bool DoesVerticalContentFit(float cardHeight, float paddingY, float headerHeight, float contentSpacing, float firstSectionHeight, float secondSectionHeight)
         {
             float availableHeight = cardHeight - (paddingY * 2f);

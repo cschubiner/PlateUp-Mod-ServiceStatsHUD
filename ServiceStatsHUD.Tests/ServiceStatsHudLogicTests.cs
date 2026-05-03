@@ -18,8 +18,8 @@ namespace KitchenServiceStatsHUD.Tests
             SetPrivateStaticProperty("Enabled", true);
             SetPrivateStaticProperty("ShowServed", true);
             SetPrivateStaticProperty("ShowOrders", true);
-            SetPrivateStaticProperty("ShowWashed", true);
-            SetPrivateStaticProperty("ShowActions", true);
+            SetPrivateStaticProperty("ShowWashed", false);
+            SetPrivateStaticProperty("ShowActions", false);
             SetPrivateStaticProperty("ShowDistance", true);
             SetPrivateStaticProperty("ShowIdle", true);
             SetPrivateStaticProperty("IdleThresholdSeconds", 1);
@@ -477,6 +477,28 @@ namespace KitchenServiceStatsHUD.Tests
         }
 
         [TestMethod]
+        public void ShouldCreditWashFromInteractionAttempt_OnlyCreditsCompletedFloorCleaningActs()
+        {
+            Assert.IsTrue(ServiceStatsHudLogic.ShouldCreditWashFromInteractionAttempt(
+                interactionType: 2,
+                interactionResult: 2,
+                isFloorMessTarget: true));
+
+            Assert.IsFalse(ServiceStatsHudLogic.ShouldCreditWashFromInteractionAttempt(
+                interactionType: 1,
+                interactionResult: 2,
+                isFloorMessTarget: true));
+            Assert.IsFalse(ServiceStatsHudLogic.ShouldCreditWashFromInteractionAttempt(
+                interactionType: 2,
+                interactionResult: 1,
+                isFloorMessTarget: true));
+            Assert.IsFalse(ServiceStatsHudLogic.ShouldCreditWashFromInteractionAttempt(
+                interactionType: 2,
+                interactionResult: 2,
+                isFloorMessTarget: false));
+        }
+
+        [TestMethod]
         public void DoesVerticalContentFit_CatchesContentClipping()
         {
             Assert.IsFalse(ServiceStatsHudLogic.DoesVerticalContentFit(
@@ -750,6 +772,8 @@ namespace KitchenServiceStatsHUD.Tests
         public void SettingsDistanceToggle_DefaultsVisible()
         {
             Assert.IsTrue(ServiceStatsSettings.ShowServed);
+            Assert.IsFalse(ServiceStatsSettings.ShowWashed);
+            Assert.IsFalse(ServiceStatsSettings.ShowActions);
             Assert.IsTrue(ServiceStatsSettings.ShowDistance);
             Assert.IsTrue(ServiceStatsSettings.ShowIdle);
         }

@@ -83,6 +83,27 @@ namespace KitchenServiceStatsHUD.Patches
             return state;
         }
 
+        public static ServiceStatsTransferActionState PrepareActionFromInteractionTransfer(EntityManager entityManager, Entity transfer, Entity acceptance)
+        {
+            ServiceStatsTransferActionState state = default(ServiceStatsTransferActionState);
+            Entity player;
+            if (!ServiceStatsEntityHelpers.TryResolvePlayerFromTransfer(entityManager, transfer, acceptance, out player))
+            {
+                return state;
+            }
+
+            if (entityManager.Exists(transfer) && entityManager.HasComponent<CItemTransferProposal>(transfer))
+            {
+                CItemTransferProposal proposal = entityManager.GetComponentData<CItemTransferProposal>(transfer);
+                ServiceStatsRuntime.RememberItemOwner(entityManager, proposal.Item, player);
+            }
+
+            state.ShouldRecord = true;
+            state.Transfer = transfer;
+            state.Player = player;
+            return state;
+        }
+
         public static void RecordPreparedTransferAction(EntityManager entityManager, ServiceStatsTransferActionState state)
         {
             if (!state.ShouldRecord)
@@ -329,17 +350,28 @@ namespace KitchenServiceStatsHUD.Patches
                 return;
             }
 
-            __state = ServeTrackingHelpers.PrepareActionFromSuccessfulInteractionTransfer(systemBase.EntityManager, __0, __1, __2);
+            __state = ServeTrackingHelpers.PrepareActionFromInteractionTransfer(systemBase.EntityManager, __1, __2);
         }
 
-        private static void Postfix(object __instance, ref ServiceStatsTransferActionState __state)
+        private static void Postfix(object __instance, Entity __0, Entity __1, Entity __2, ref ServiceStatsTransferActionState __state)
         {
             if (!(__instance is GameSystemBase systemBase))
             {
                 return;
             }
 
-            ServeTrackingHelpers.RecordPreparedTransferAction(systemBase.EntityManager, __state);
+            if (!ServeTrackingHelpers.IsAcceptedTransferResult(systemBase.EntityManager, __0))
+            {
+                return;
+            }
+
+            if (__state.ShouldRecord)
+            {
+                ServeTrackingHelpers.RecordPreparedTransferAction(systemBase.EntityManager, __state);
+                return;
+            }
+
+            ServeTrackingHelpers.RecordActionFromTransfer(systemBase.EntityManager, __1, __2);
         }
     }
 

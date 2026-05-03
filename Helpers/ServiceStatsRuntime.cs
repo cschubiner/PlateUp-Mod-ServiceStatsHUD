@@ -14,6 +14,7 @@ namespace KitchenServiceStatsHUD.Helpers
         private static readonly Dictionary<int, ServiceStatsMovementSnapshot> MovementSnapshots = new Dictionary<int, ServiceStatsMovementSnapshot>();
         private static readonly Dictionary<int, int> ActiveInteractionAttempts = new Dictionary<int, int>();
         private static readonly Dictionary<int, int> LastActionFrameByPlayer = new Dictionary<int, int>();
+        private static readonly Dictionary<int, int> LastWashFrameByPlayer = new Dictionary<int, int>();
         private static readonly Dictionary<int, Entity> ItemOwners = new Dictionary<int, Entity>();
         private static readonly HashSet<Entity> ProcessedServeAcceptances = new HashSet<Entity>();
         private static readonly HashSet<Entity> ProcessedActionTransfers = new HashSet<Entity>();
@@ -29,6 +30,7 @@ namespace KitchenServiceStatsHUD.Helpers
             MovementSnapshots.Clear();
             ActiveInteractionAttempts.Clear();
             LastActionFrameByPlayer.Clear();
+            LastWashFrameByPlayer.Clear();
             ItemOwners.Clear();
             ProcessedServeAcceptances.Clear();
             ProcessedActionTransfers.Clear();
@@ -153,6 +155,20 @@ namespace KitchenServiceStatsHUD.Helpers
             if (!TryGetOrCreateState(entityManager, player, out state))
             {
                 return;
+            }
+
+            int currentFrame = Time.frameCount;
+            int lastFrame;
+            if (currentFrame > 0 &&
+                LastWashFrameByPlayer.TryGetValue(state.PlayerId, out lastFrame) &&
+                lastFrame == currentFrame)
+            {
+                return;
+            }
+
+            if (currentFrame > 0)
+            {
+                LastWashFrameByPlayer[state.PlayerId] = currentFrame;
             }
 
             state.DishesWashed++;
@@ -297,6 +313,14 @@ namespace KitchenServiceStatsHUD.Helpers
 
             ActiveInteractionAttempts[state.PlayerId] = attemptKey;
             RecordAction(entityManager, player);
+
+            if (ServiceStatsHudLogic.ShouldCreditWashFromInteractionAttempt(
+                (int) interaction.Type,
+                (int) interaction.Result,
+                IsFloorMessCleaningInteractionTarget(entityManager, interaction.Target)))
+            {
+                RecordDishWashed(entityManager, player);
+            }
         }
 
         private static int CalculateInteractionAttemptKey(CAttemptingInteraction interaction)
@@ -326,6 +350,33 @@ namespace KitchenServiceStatsHUD.Helpers
 
             Entity heldItem = entityManager.GetComponentData<CItemHolder>(target).HeldItem;
             RememberItemOwner(entityManager, heldItem, player);
+        }
+
+        private static bool IsFloorMessCleaningInteractionTarget(EntityManager entityManager, Entity target)
+        {
+            if (IsFloorMessCleaningTarget(entityManager, target))
+            {
+                return true;
+            }
+
+            if (!entityManager.Exists(target))
+            {
+                return false;
+            }
+
+            if (entityManager.HasComponent<CItemHolder>(target) &&
+                IsFloorMessCleaningTarget(entityManager, entityManager.GetComponentData<CItemHolder>(target).HeldItem))
+            {
+                return true;
+            }
+
+            if (entityManager.HasComponent<CDurationInteractionProxy>(target) &&
+                IsFloorMessCleaningTarget(entityManager, entityManager.GetComponentData<CDurationInteractionProxy>(target).Proxy))
+            {
+                return true;
+            }
+
+            return false;
         }
 
         private static bool TryResolveDrinkDeliveryPlayer(EntityManager entityManager, CItemTransferProposal proposal, out Entity player)
