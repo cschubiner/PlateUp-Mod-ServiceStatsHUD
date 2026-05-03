@@ -56,6 +56,42 @@ namespace KitchenServiceStatsHUD.Patches
             RecordActionFromTransfer(entityManager, transfer, acceptance);
         }
 
+        public static ServiceStatsTransferActionState PrepareActionFromSuccessfulInteractionTransfer(EntityManager entityManager, Entity result, Entity transfer, Entity acceptance)
+        {
+            ServiceStatsTransferActionState state = default(ServiceStatsTransferActionState);
+            if (!IsAcceptedTransferResult(entityManager, result))
+            {
+                return state;
+            }
+
+            Entity player;
+            if (!ServiceStatsEntityHelpers.TryResolvePlayerFromTransfer(entityManager, transfer, acceptance, out player))
+            {
+                return state;
+            }
+
+            if (entityManager.Exists(transfer) && entityManager.HasComponent<CItemTransferProposal>(transfer))
+            {
+                CItemTransferProposal proposal = entityManager.GetComponentData<CItemTransferProposal>(transfer);
+                ServiceStatsRuntime.RememberItemOwner(entityManager, proposal.Item, player);
+            }
+
+            state.ShouldRecord = true;
+            state.Transfer = transfer;
+            state.Player = player;
+            return state;
+        }
+
+        public static void RecordPreparedTransferAction(EntityManager entityManager, ServiceStatsTransferActionState state)
+        {
+            if (!state.ShouldRecord)
+            {
+                return;
+            }
+
+            ServiceStatsRuntime.TryRecordActionForTransferOnce(entityManager, state.Transfer, state.Player);
+        }
+
         public static bool IsAcceptedTransferResult(EntityManager entityManager, Entity result)
         {
             return entityManager.Exists(result) &&
@@ -252,6 +288,57 @@ namespace KitchenServiceStatsHUD.Patches
                 __state,
                 __state.ShouldRecord &&
                 ServiceStatsEntityHelpers.DidOrderServeAcceptanceComplete(__instance.EntityManager, __state));
+        }
+    }
+
+    [HarmonyPatch]
+    internal static class TransferInteractionReceiveResultActionPatch
+    {
+        private static IEnumerable<MethodBase> TargetMethods()
+        {
+            Type transferInteractionType = typeof(TransferInteractionProposalSystem);
+            Type[] signature =
+            {
+                typeof(Entity),
+                typeof(Entity),
+                typeof(Entity),
+                typeof(EntityContext)
+            };
+
+            return AppDomain.CurrentDomain.GetAssemblies()
+                .Where(assembly => ServiceStatsActionHookRules.ShouldScanAssembly(assembly.GetName().Name))
+                .SelectMany(assembly => assembly.GetTypes())
+                .Where(type => transferInteractionType.IsAssignableFrom(type) &&
+                               !type.IsAbstract &&
+                               ServiceStatsActionHookRules.ShouldTrackTransferInteractionResultType(type.Name))
+                .Select(type => type.GetMethod(
+                    "ReceiveResult",
+                    BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.DeclaredOnly,
+                    null,
+                    signature,
+                    null))
+                .Where(method => method != null)
+                .Cast<MethodBase>();
+        }
+
+        private static void Prefix(object __instance, Entity __0, Entity __1, Entity __2, ref ServiceStatsTransferActionState __state)
+        {
+            if (!(__instance is GameSystemBase systemBase))
+            {
+                return;
+            }
+
+            __state = ServeTrackingHelpers.PrepareActionFromSuccessfulInteractionTransfer(systemBase.EntityManager, __0, __1, __2);
+        }
+
+        private static void Postfix(object __instance, ref ServiceStatsTransferActionState __state)
+        {
+            if (!(__instance is GameSystemBase systemBase))
+            {
+                return;
+            }
+
+            ServeTrackingHelpers.RecordPreparedTransferAction(systemBase.EntityManager, __state);
         }
     }
 

@@ -45,5 +45,10 @@ namespace KitchenServiceStatsHUD.Helpers
         {
             return !string.IsNullOrWhiteSpace(typeName) && !ExcludedTransferTypeNames.Contains(typeName);
         }
+
+        public static bool ShouldTrackTransferInteractionResultType(string typeName)
+        {
+            return !string.IsNullOrWhiteSpace(typeName);
+        }
     }
 }

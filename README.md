@@ -7,7 +7,7 @@ Standalone PlateUp mod that adds a top-right debug-style HUD with per-player dai
 - `srv`: customer order items served at the delivery moment
 - `ord`: orders taken manually or by order machine
 - `wash`: dishes washed and floor messes cleaned by completed player cleaning processes
-- `act`: generic player-attributed actions, including serving, ordering, washing, chopping-style interactions, and compatible transfer/combine interactions
+- `act`: generic player-attributed actions, including serving, ordering, washing, chopping-style interactions, dispenser/provider use, and compatible transfer/combine interactions
 - `dist`: player movement distance during the day
 - `idle`: idle time after 5 seconds without an attributed action
 
@@ -42,7 +42,7 @@ Open `Preferences` from the main menu or pause menu, then open `Service Stats HU
 - Drink serves increment from confirmed drink transfers into a customer table/grab point, not later passive customer consumption.
 - Completed player cleaning processes always increment actions.
 - Completed clean-appliance processes and floor/mess cleaning processes also increment washed.
-- Generic player interaction/transfer hooks increment actions for supported interaction types.
+- Generic player interaction/transfer hooks increment actions for supported interaction types, including provider/dispenser results such as coffee-machine use.
 - Automation-only outcomes without a player actor do not earn per-player credit.
 
 ## Editing The Mod
@@ -106,6 +106,7 @@ Run these from `ServiceStatsHUD\`.
 - Serves credit only the serving player.
 - Washing dishes or cleaning floor messes increments both `wash` and `act` for the cleaning player.
 - Chopping and combining count as actions where the underlying interaction is supported.
+- Taking or creating items from provider-style machines, such as coffee machines, counts as an action.
 - Distance increases while players move during daytime.
 - Idle starts increasing after 5 seconds without an attributed action.
 - Players with zero serves stay hidden unless `Show Everyone` is selected.

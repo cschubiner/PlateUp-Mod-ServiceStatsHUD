@@ -118,6 +118,13 @@ namespace KitchenServiceStatsHUD.Helpers
         public Entity Player;
     }
 
+    internal struct ServiceStatsTransferActionState
+    {
+        public bool ShouldRecord;
+        public Entity Transfer;
+        public Entity Player;
+    }
+
     internal struct ServiceStatsMovementSnapshot
     {
         public bool HasPosition;

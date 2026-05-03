@@ -590,6 +590,15 @@ namespace KitchenServiceStatsHUD.Tests
         }
 
         [TestMethod]
+        public void ActionHookRules_TrackProviderReceiveResultsForMachineAndDispenserActions()
+        {
+            Assert.IsTrue(ServiceStatsActionHookRules.ShouldTrackTransferInteractionResultType("TakeFromProvider"));
+            Assert.IsTrue(ServiceStatsActionHookRules.ShouldTrackTransferInteractionResultType("TakeFromHolder"));
+            Assert.IsTrue(ServiceStatsActionHookRules.ShouldTrackTransferInteractionResultType("TakeFromComponentSplit"));
+            Assert.IsFalse(ServiceStatsActionHookRules.ShouldTrackTransferInteractionResultType(""));
+        }
+
+        [TestMethod]
         public void HudScaleOptions_IncludeLowScalePresetsDownToThirtyPercent()
         {
             Assert.AreEqual(0.30f, ResolveScale(ServiceStatsScaleOption.Thirty), 0.001f);
