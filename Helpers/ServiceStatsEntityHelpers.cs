@@ -25,6 +25,27 @@ namespace KitchenServiceStatsHUD.Helpers
             return true;
         }
 
+        public static int GetPlayerDisplayIndex(EntityManager entityManager, Entity player)
+        {
+            if (!IsValidPlayer(entityManager, player))
+            {
+                return -1;
+            }
+
+            CPlayer playerData = entityManager.GetComponentData<CPlayer>(player);
+            if (playerData.Index >= 0 && playerData.Index < 128)
+            {
+                return playerData.Index;
+            }
+
+            if (playerData.ID >= 0 && playerData.ID < 128)
+            {
+                return playerData.ID;
+            }
+
+            return -1;
+        }
+
         public static bool TryResolveServingPlayerFromTransfer(EntityManager entityManager, Entity transfer, out Entity player)
         {
             player = Entity.Null;

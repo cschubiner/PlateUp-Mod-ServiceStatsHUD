@@ -646,6 +646,7 @@ namespace KitchenServiceStatsHUD.Helpers
                 state = new ServiceStatsPlayerState
                 {
                     PlayerId = playerId,
+                    DisplayIndex = ServiceStatsEntityHelpers.GetPlayerDisplayIndex(entityManager, resolvedPlayer),
                     BadgeColor = ServiceStatsDisplayResolver.ResolveColor(entityManager, resolvedPlayer, playerId)
                 };
 
@@ -694,9 +695,15 @@ namespace KitchenServiceStatsHUD.Helpers
 
         private static void RefreshIdentity(EntityManager entityManager, Entity player, ServiceStatsPlayerState state)
         {
+            int displayIndex = ServiceStatsEntityHelpers.GetPlayerDisplayIndex(entityManager, player);
+            if (displayIndex >= 0)
+            {
+                state.DisplayIndex = displayIndex;
+            }
+
             state.BadgeColor = ServiceStatsDisplayResolver.ResolveColor(entityManager, player, state.PlayerId);
 
-            string resolvedName = ServiceStatsDisplayResolver.ResolveName(state.PlayerId);
+            string resolvedName = ServiceStatsDisplayResolver.ResolveName(entityManager, player, state.PlayerId, state.DisplayIndex);
             if (!string.IsNullOrWhiteSpace(resolvedName))
             {
                 state.ResolvedName = resolvedName;

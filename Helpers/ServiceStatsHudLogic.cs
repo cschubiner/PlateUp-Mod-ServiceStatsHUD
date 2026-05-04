@@ -7,6 +7,11 @@ namespace KitchenServiceStatsHUD.Helpers
     {
         public static string BuildFallbackLabel(int playerId)
         {
+            if (playerId < 0 || playerId > 127)
+            {
+                return "P?";
+            }
+
             return "P" + (playerId + 1);
         }
 
@@ -153,7 +158,8 @@ namespace KitchenServiceStatsHUD.Helpers
                 cards.Add(new ServiceStatsCardViewModel
                 {
                     PlayerId = player.PlayerId,
-                    DisplayName = BuildDisplayLabel(player.ResolvedName, player.PlayerId),
+                    DisplayIndex = GetDisplayIndex(player),
+                    DisplayName = BuildDisplayLabel(player.ResolvedName, GetDisplayIndex(player)),
                     BadgeColor = player.BadgeColor,
                     Served = player.Served,
                     OrdersTaken = player.OrdersTaken,
@@ -394,25 +400,27 @@ namespace KitchenServiceStatsHUD.Helpers
 
         private static int ComparePlayers(ServiceStatsPlayerState left, ServiceStatsPlayerState right)
         {
-            int servedCompare = right.Served.CompareTo(left.Served);
-            if (servedCompare != 0)
+            int nameCompare = string.Compare(
+                BuildDisplayLabel(left.ResolvedName, GetDisplayIndex(left)),
+                BuildDisplayLabel(right.ResolvedName, GetDisplayIndex(right)),
+                System.StringComparison.OrdinalIgnoreCase);
+            if (nameCompare != 0)
             {
-                return servedCompare;
+                return nameCompare;
             }
 
-            int orderCompare = right.OrdersTaken.CompareTo(left.OrdersTaken);
-            if (orderCompare != 0)
+            int displayIndexCompare = GetDisplayIndex(left).CompareTo(GetDisplayIndex(right));
+            if (displayIndexCompare != 0)
             {
-                return orderCompare;
-            }
-
-            int washedCompare = right.DishesWashed.CompareTo(left.DishesWashed);
-            if (washedCompare != 0)
-            {
-                return washedCompare;
+                return displayIndexCompare;
             }
 
             return left.PlayerId.CompareTo(right.PlayerId);
+        }
+
+        private static int GetDisplayIndex(ServiceStatsPlayerState player)
+        {
+            return player.DisplayIndex >= 0 ? player.DisplayIndex : player.PlayerId;
         }
 
         private static float ClampScale(float value)

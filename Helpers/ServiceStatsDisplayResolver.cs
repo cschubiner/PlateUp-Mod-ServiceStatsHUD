@@ -21,8 +21,49 @@ namespace KitchenServiceStatsHUD.Helpers
 
         public static string ResolveName(int playerId)
         {
+            PlayerInfo playerInfo;
+            if (TryGetPlayerInfoForPlayerId(playerId, out playerInfo) && !string.IsNullOrWhiteSpace(playerInfo.Name))
+            {
+                return playerInfo.Name;
+            }
+
             PlayerProfile profile;
             if (TryGetProfileForPlayerId(playerId, out profile) && !string.IsNullOrWhiteSpace(profile.Name))
+            {
+                return profile.Name;
+            }
+
+            return null;
+        }
+
+        public static string ResolveName(EntityManager entityManager, Entity player, int playerId, int displayIndex)
+        {
+            PlayerInfo playerInfo;
+            if (TryGetPlayerInfoForPlayerId(playerId, out playerInfo) && !string.IsNullOrWhiteSpace(playerInfo.Name))
+            {
+                return playerInfo.Name;
+            }
+
+            if (TryGetPlayerInfoForDisplayIndex(displayIndex, out playerInfo) && !string.IsNullOrWhiteSpace(playerInfo.Name))
+            {
+                return playerInfo.Name;
+            }
+
+            PlayerProfile profile;
+            if (entityManager.Exists(player) &&
+                entityManager.HasComponent<CSetPlayerProfile>(player) &&
+                TryGetProfileForPlayerId(entityManager.GetComponentData<CSetPlayerProfile>(player).PlayerID, out profile) &&
+                !string.IsNullOrWhiteSpace(profile.Name))
+            {
+                return profile.Name;
+            }
+
+            if (TryGetProfileForPlayerId(playerId, out profile) && !string.IsNullOrWhiteSpace(profile.Name))
+            {
+                return profile.Name;
+            }
+
+            if (TryGetProfileForDisplayIndex(displayIndex, out profile) && !string.IsNullOrWhiteSpace(profile.Name))
             {
                 return profile.Name;
             }
@@ -45,6 +86,12 @@ namespace KitchenServiceStatsHUD.Helpers
                 }
             }
 
+            PlayerInfo playerInfo;
+            if (TryGetPlayerInfoForPlayerId(playerId, out playerInfo) && playerInfo.HasProfile)
+            {
+                return playerInfo.Profile.Colour;
+            }
+
             PlayerProfile profile;
             if (TryGetProfileForPlayerId(playerId, out profile))
             {
@@ -52,6 +99,61 @@ namespace KitchenServiceStatsHUD.Helpers
             }
 
             return GetFallbackColor(playerId);
+        }
+
+        private static bool TryGetPlayerInfoForPlayerId(int playerId, out PlayerInfo playerInfo)
+        {
+            playerInfo = default(PlayerInfo);
+            try
+            {
+                if (Players.Main == null || !Players.Main.Has(playerId))
+                {
+                    return false;
+                }
+
+                playerInfo = Players.Main.Get(playerId);
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        private static bool TryGetPlayerInfoForDisplayIndex(int displayIndex, out PlayerInfo playerInfo)
+        {
+            playerInfo = default(PlayerInfo);
+            try
+            {
+                if (displayIndex < 0 || Players.Main == null)
+                {
+                    return false;
+                }
+
+                List<PlayerInfo> allPlayers = Players.Main.All();
+                if (allPlayers == null)
+                {
+                    return false;
+                }
+
+                for (int index = 0; index < allPlayers.Count; index++)
+                {
+                    PlayerInfo candidate = allPlayers[index];
+                    if (candidate.Index != displayIndex)
+                    {
+                        continue;
+                    }
+
+                    playerInfo = candidate;
+                    return true;
+                }
+            }
+            catch
+            {
+                return false;
+            }
+
+            return false;
         }
 
         private static bool TryGetProfileForPlayerId(int playerId, out PlayerProfile profile)
@@ -75,6 +177,21 @@ namespace KitchenServiceStatsHUD.Helpers
             }
 
             return false;
+        }
+
+        private static bool TryGetProfileForDisplayIndex(int displayIndex, out PlayerProfile profile)
+        {
+            profile = default(PlayerProfile);
+            List<RetainedPlayer> retainedPlayers = Session.RetainedPlayers;
+            if (displayIndex < 0 ||
+                retainedPlayers == null ||
+                displayIndex >= retainedPlayers.Count ||
+                ProfileStore.Main == null)
+            {
+                return false;
+            }
+
+            return ProfileStore.Main.TryGetProfile(retainedPlayers[displayIndex].PlayerProfile, out profile);
         }
 
         private static Color GetFallbackColor(int playerId)

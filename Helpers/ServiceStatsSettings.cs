@@ -64,8 +64,8 @@ namespace KitchenServiceStatsHUD.Helpers
             ServiceStatsScaleOption.ExtraLarge
         };
         private static readonly string[] ScaleLabels = { "30%", "45%", "60%", "75%", "85%", "100%", "115%", "130%" };
-        private static readonly int[] ThresholdSecondOptions = { 1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 20 };
-        private static readonly string[] ThresholdSecondLabels = { "1s", "3s", "5s", "7s", "9s", "11s", "13s", "15s", "17s", "19s", "20s" };
+        private static readonly int[] ThresholdSecondOptions = { 1, 3, 4, 5, 7, 9, 11, 13, 15, 17, 19, 20 };
+        private static readonly string[] ThresholdSecondLabels = { "1s", "3s", "4s", "5s", "7s", "9s", "11s", "13s", "15s", "17s", "19s", "20s" };
         private static readonly ServiceStatsFontOption[] FontOptions =
         {
             ServiceStatsFontOption.Default,
@@ -200,14 +200,14 @@ namespace KitchenServiceStatsHUD.Helpers
                 .AddOption(
                     "show_washed",
                     ShowWashed,
-                    new[] { true, false },
-                    new[] { "Show Washed", "Hide Washed" },
+                    new[] { false, true },
+                    new[] { "Hide Washed", "Show Washed" },
                     value => ShowWashed = value)
                 .AddOption(
                     "show_actions",
                     ShowActions,
-                    new[] { true, false },
-                    new[] { "Show Actions", "Hide Actions" },
+                    new[] { false, true },
+                    new[] { "Hide Actions", "Show Actions" },
                     value => ShowActions = value)
                 .AddOption(
                     "show_distance",

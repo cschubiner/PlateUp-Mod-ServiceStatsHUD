@@ -7,6 +7,7 @@ namespace KitchenServiceStatsHUD.Helpers
     public class ServiceStatsPlayerState
     {
         public int PlayerId;
+        public int DisplayIndex = -1;
         public string ResolvedName;
         public Color BadgeColor;
         public int Served;
@@ -34,6 +35,7 @@ namespace KitchenServiceStatsHUD.Helpers
     public class ServiceStatsCardViewModel
     {
         public int PlayerId;
+        public int DisplayIndex;
         public string DisplayName;
         public Color BadgeColor;
         public int Served;

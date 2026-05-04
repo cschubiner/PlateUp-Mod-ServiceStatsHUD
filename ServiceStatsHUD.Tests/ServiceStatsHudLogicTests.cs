@@ -96,14 +96,14 @@ namespace KitchenServiceStatsHUD.Tests
         }
 
         [TestMethod]
-        public void BuildVisibleCards_SortsByServedOrdersWashedThenPlayerId()
+        public void BuildVisibleCards_SortsByDisplayNameFirst()
         {
             List<ServiceStatsPlayerState> players = new List<ServiceStatsPlayerState>
             {
-                new ServiceStatsPlayerState { PlayerId = 3, ResolvedName = "C", BadgeColor = Color.white, Served = 2, OrdersTaken = 4, DishesWashed = 1 },
-                new ServiceStatsPlayerState { PlayerId = 1, ResolvedName = "A", BadgeColor = Color.white, Served = 3, OrdersTaken = 0, DishesWashed = 0 },
-                new ServiceStatsPlayerState { PlayerId = 2, ResolvedName = "B", BadgeColor = Color.white, Served = 2, OrdersTaken = 4, DishesWashed = 5 },
-                new ServiceStatsPlayerState { PlayerId = 0, ResolvedName = "D", BadgeColor = Color.white, Served = 2, OrdersTaken = 4, DishesWashed = 5 }
+                new ServiceStatsPlayerState { PlayerId = 3, ResolvedName = "Zoe", BadgeColor = Color.white, Served = 99, OrdersTaken = 4, DishesWashed = 1 },
+                new ServiceStatsPlayerState { PlayerId = 1, ResolvedName = "alex", BadgeColor = Color.white, Served = 1, OrdersTaken = 0, DishesWashed = 0 },
+                new ServiceStatsPlayerState { PlayerId = 2, ResolvedName = "Mina", BadgeColor = Color.white, Served = 2, OrdersTaken = 40, DishesWashed = 5 },
+                new ServiceStatsPlayerState { PlayerId = 0, ResolvedName = "Janet", BadgeColor = Color.white, Served = 8, OrdersTaken = 4, DishesWashed = 5 }
             };
 
             List<ServiceStatsCardViewModel> cards = ServiceStatsHudLogic.BuildVisibleCards(players, true);
@@ -113,6 +113,24 @@ namespace KitchenServiceStatsHUD.Tests
             Assert.AreEqual(0, cards[1].PlayerId);
             Assert.AreEqual(2, cards[2].PlayerId);
             Assert.AreEqual(3, cards[3].PlayerId);
+        }
+
+        [TestMethod]
+        public void BuildVisibleCards_TiesDisplayNameByDisplayIndexThenPlayerId()
+        {
+            List<ServiceStatsPlayerState> players = new List<ServiceStatsPlayerState>
+            {
+                new ServiceStatsPlayerState { PlayerId = 99, DisplayIndex = 2, ResolvedName = "", BadgeColor = Color.white, Served = 1 },
+                new ServiceStatsPlayerState { PlayerId = -12839712, DisplayIndex = 1, ResolvedName = "", BadgeColor = Color.white, Served = 1 },
+                new ServiceStatsPlayerState { PlayerId = 3, DisplayIndex = 1, ResolvedName = "", BadgeColor = Color.white, Served = 1 }
+            };
+
+            List<ServiceStatsCardViewModel> cards = ServiceStatsHudLogic.BuildVisibleCards(players, true);
+
+            Assert.AreEqual(3, cards.Count);
+            Assert.AreEqual(-12839712, cards[0].PlayerId);
+            Assert.AreEqual(3, cards[1].PlayerId);
+            Assert.AreEqual(99, cards[2].PlayerId);
         }
 
         [TestMethod]
@@ -236,6 +254,32 @@ namespace KitchenServiceStatsHUD.Tests
             Assert.AreEqual("P3", ServiceStatsHudLogic.BuildDisplayLabel(null, 2));
             Assert.AreEqual("P5", ServiceStatsHudLogic.BuildDisplayLabel("   ", 4));
             Assert.AreEqual("Jordan", ServiceStatsHudLogic.BuildDisplayLabel("Jordan", 0));
+        }
+
+        [TestMethod]
+        public void BuildDisplayLabel_NeverShowsRawInvalidPlayerIds()
+        {
+            Assert.AreEqual("P?", ServiceStatsHudLogic.BuildDisplayLabel(null, -12839712));
+            Assert.AreEqual("P?", ServiceStatsHudLogic.BuildDisplayLabel("   ", 999999));
+        }
+
+        [TestMethod]
+        public void BuildVisibleCards_UsesDisplayIndexForFallbackLabels()
+        {
+            ServiceStatsPlayerState player = new ServiceStatsPlayerState
+            {
+                PlayerId = -12839712,
+                DisplayIndex = 1,
+                BadgeColor = Color.white,
+                Served = 1
+            };
+
+            List<ServiceStatsCardViewModel> cards = ServiceStatsHudLogic.BuildVisibleCards(new[] { player }, true);
+
+            Assert.AreEqual(1, cards.Count);
+            Assert.AreEqual(-12839712, cards[0].PlayerId);
+            Assert.AreEqual(1, cards[0].DisplayIndex);
+            Assert.AreEqual("P2", cards[0].DisplayName);
         }
 
         [TestMethod]
@@ -554,14 +598,16 @@ namespace KitchenServiceStatsHUD.Tests
             List<ServiceStatsCardViewModel> cards = ServiceStatsHudLogic.BuildVisibleCards(players, true);
 
             Assert.AreEqual(2, cards.Count);
-            Assert.AreEqual(14, cards[0].ActionsPerformed);
-            Assert.AreEqual(42.25f, cards[0].DistanceTravelled, 0.001f);
-            Assert.AreEqual(3.5f, cards[0].IdleTime, 0.001f);
-            Assert.AreEqual(0.5f, cards[0].AsleepTime, 0.001f);
-            Assert.AreEqual(11, cards[1].ActionsPerformed);
-            Assert.AreEqual(8.5f, cards[1].DistanceTravelled, 0.001f);
-            Assert.AreEqual(9f, cards[1].IdleTime, 0.001f);
-            Assert.AreEqual(5f, cards[1].AsleepTime, 0.001f);
+            Assert.AreEqual("Quinn", cards[0].DisplayName);
+            Assert.AreEqual(11, cards[0].ActionsPerformed);
+            Assert.AreEqual(8.5f, cards[0].DistanceTravelled, 0.001f);
+            Assert.AreEqual(9f, cards[0].IdleTime, 0.001f);
+            Assert.AreEqual(5f, cards[0].AsleepTime, 0.001f);
+            Assert.AreEqual("Riley", cards[1].DisplayName);
+            Assert.AreEqual(14, cards[1].ActionsPerformed);
+            Assert.AreEqual(42.25f, cards[1].DistanceTravelled, 0.001f);
+            Assert.AreEqual(3.5f, cards[1].IdleTime, 0.001f);
+            Assert.AreEqual(0.5f, cards[1].AsleepTime, 0.001f);
         }
 
         [TestMethod]
@@ -785,10 +831,10 @@ namespace KitchenServiceStatsHUD.Tests
             string[] labels = GetPrivateStaticField<string[]>("ThresholdSecondLabels");
 
             CollectionAssert.AreEqual(
-                new[] { 1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 20 },
+                new[] { 1, 3, 4, 5, 7, 9, 11, 13, 15, 17, 19, 20 },
                 options);
             CollectionAssert.AreEqual(
-                new[] { "1s", "3s", "5s", "7s", "9s", "11s", "13s", "15s", "17s", "19s", "20s" },
+                new[] { "1s", "3s", "4s", "5s", "7s", "9s", "11s", "13s", "15s", "17s", "19s", "20s" },
                 labels);
             Assert.AreEqual(options.Length, labels.Length);
             Assert.AreEqual(1, ServiceStatsSettings.IdleThresholdSeconds);
@@ -817,7 +863,7 @@ namespace KitchenServiceStatsHUD.Tests
         {
             InvokeApplyPreferenceSnapshot(idleThresholdSeconds: 4, asleepThresholdSeconds: 99);
 
-            Assert.AreEqual(3, ServiceStatsSettings.IdleThresholdSeconds);
+            Assert.AreEqual(4, ServiceStatsSettings.IdleThresholdSeconds);
             Assert.AreEqual(20, ServiceStatsSettings.AsleepThresholdSeconds);
         }
 
