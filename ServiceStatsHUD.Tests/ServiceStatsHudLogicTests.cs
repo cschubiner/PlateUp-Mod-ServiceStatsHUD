@@ -307,6 +307,22 @@ namespace KitchenServiceStatsHUD.Tests
         }
 
         [TestMethod]
+        public void FormatColorHex_ClampsAndFormatsRgbChannels()
+        {
+            Assert.AreEqual("FF8000", ServiceStatsHudLogic.FormatColorHex(new Color(1f, 0.5f, 0f, 1f)));
+            Assert.AreEqual("00FFFF", ServiceStatsHudLogic.FormatColorHex(new Color(-1f, 2f, 1f, 1f)));
+            Assert.AreEqual("595959", ServiceStatsHudLogic.FormatColorHex(Color.black));
+        }
+
+        [TestMethod]
+        public void BuildColoredName_EscapesPlayerNameMarkup()
+        {
+            Assert.AreEqual(
+                "<color=#336699>Janet &lt;Boss&gt; &amp; Co</color>",
+                ServiceStatsHudLogic.BuildColoredName("Janet <Boss> & Co", new Color(0.2f, 0.4f, 0.6f, 1f)));
+        }
+
+        [TestMethod]
         public void CalculateIdleDelta_CanUseIdleOrAsleepThresholds()
         {
             Assert.AreEqual(0f, ServiceStatsHudLogic.CalculateIdleDelta(0f, 0.9f, 1f), 0.001f);
@@ -351,8 +367,8 @@ namespace KitchenServiceStatsHUD.Tests
             string text = ServiceStatsHudLogic.BuildDebugText(cards, true, true, true, true, true);
 
             StringAssert.StartsWith(text, "SERVICE STATS");
-            StringAssert.Contains(text, "Clay  srv 2  ord 3  wash 1  act 14  dist 12.3  idle 6s  asleep 2s");
-            StringAssert.Contains(text, "P3  srv 1  ord 0  wash 4  act 7  dist 124  idle 1m05s  asleep 1m01s");
+            StringAssert.Contains(text, "<color=#595959>Clay</color>  srv 2  ord 3  wash 1  act 14  dist 12.3  idle 6s  asleep 2s");
+            StringAssert.Contains(text, "<color=#595959>P3</color>  srv 1  ord 0  wash 4  act 7  dist 124  idle 1m05s  asleep 1m01s");
         }
 
         [TestMethod]
@@ -374,7 +390,7 @@ namespace KitchenServiceStatsHUD.Tests
 
             string text = ServiceStatsHudLogic.BuildDebugText(cards, false, false, true, false);
 
-            Assert.AreEqual("SERVICE STATS\r\nSam  srv 5  act 10", text);
+            Assert.AreEqual("SERVICE STATS\r\n<color=#595959>Sam</color>  srv 5  act 10", text);
         }
 
         [TestMethod]
@@ -396,7 +412,7 @@ namespace KitchenServiceStatsHUD.Tests
 
             string text = ServiceStatsHudLogic.BuildDebugText(cards, false, true, false, true, false, false);
 
-            Assert.AreEqual("SERVICE STATS\r\nSam  ord 8  act 10", text);
+            Assert.AreEqual("SERVICE STATS\r\n<color=#595959>Sam</color>  ord 8  act 10", text);
         }
 
         [TestMethod]

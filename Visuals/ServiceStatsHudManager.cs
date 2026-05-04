@@ -119,7 +119,7 @@ namespace KitchenServiceStatsHUD.Visuals
             _text.alignment = TextAlignmentOptions.TopRight;
             _text.enableWordWrapping = false;
             _text.overflowMode = TextOverflowModes.Overflow;
-            _text.richText = false;
+            _text.richText = true;
             _text.margin = Vector4.zero;
             _text.raycastTarget = false;
 

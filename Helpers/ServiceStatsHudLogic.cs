@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Text;
+using UnityEngine;
 
 namespace KitchenServiceStatsHUD.Helpers
 {
@@ -231,7 +232,7 @@ namespace KitchenServiceStatsHUD.Helpers
                 }
 
                 string name = string.IsNullOrWhiteSpace(card.DisplayName) ? BuildFallbackLabel(card.PlayerId) : card.DisplayName.Trim();
-                builder.Append(name);
+                builder.Append(BuildColoredName(name, card.BadgeColor));
 
                 if (showServed)
                 {
@@ -268,6 +269,49 @@ namespace KitchenServiceStatsHUD.Helpers
             }
 
             return builder.ToString().TrimEnd();
+        }
+
+        public static string BuildColoredName(string name, Color color)
+        {
+            return "<color=#" + FormatColorHex(color) + ">" + EscapeTextMeshProMarkup(name) + "</color>";
+        }
+
+        public static string FormatColorHex(Color color)
+        {
+            Color readableColor = EnsureReadableColor(color);
+            int red = ClampColorChannel(readableColor.r);
+            int green = ClampColorChannel(readableColor.g);
+            int blue = ClampColorChannel(readableColor.b);
+            return red.ToString("X2") + green.ToString("X2") + blue.ToString("X2");
+        }
+
+        public static Color EnsureReadableColor(Color color)
+        {
+            float red = Clamp01(color.r);
+            float green = Clamp01(color.g);
+            float blue = Clamp01(color.b);
+            float maxChannel = Max(red, Max(green, blue));
+            const float minimumChannel = 0.35f;
+            if (maxChannel >= minimumChannel)
+            {
+                return new Color(red, green, blue, 1f);
+            }
+
+            float lift = minimumChannel - maxChannel;
+            return new Color(red + lift, green + lift, blue + lift, 1f);
+        }
+
+        public static string EscapeTextMeshProMarkup(string value)
+        {
+            if (string.IsNullOrEmpty(value))
+            {
+                return string.Empty;
+            }
+
+            return value
+                .Replace("&", "&amp;")
+                .Replace("<", "&lt;")
+                .Replace(">", "&gt;");
         }
 
         public static string FormatDuration(float seconds)
@@ -453,9 +497,34 @@ namespace KitchenServiceStatsHUD.Helpers
             return value;
         }
 
+        private static int ClampColorChannel(float value)
+        {
+            return (int) System.Math.Round(Clamp01(value) * 255f);
+        }
+
         private static float Min(float left, float right)
         {
             return left < right ? left : right;
+        }
+
+        private static float Max(float left, float right)
+        {
+            return left > right ? left : right;
+        }
+
+        private static float Clamp01(float value)
+        {
+            if (value < 0f)
+            {
+                return 0f;
+            }
+
+            if (value > 1f)
+            {
+                return 1f;
+            }
+
+            return value;
         }
     }
 
