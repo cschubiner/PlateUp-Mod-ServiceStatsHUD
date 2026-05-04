@@ -8,7 +8,7 @@ namespace KitchenServiceStatsHUD.Helpers
             {
                 hasObservedDayPhase = true;
                 lastObservedDayPhase = isDayTime;
-                return true;
+                return isDayTime;
             }
 
             if (lastObservedDayPhase == isDayTime)
@@ -16,8 +16,9 @@ namespace KitchenServiceStatsHUD.Helpers
                 return false;
             }
 
+            bool shouldReset = !lastObservedDayPhase && isDayTime;
             lastObservedDayPhase = isDayTime;
-            return true;
+            return shouldReset;
         }
     }
 }

@@ -905,12 +905,12 @@ namespace KitchenServiceStatsHUD.Tests
         }
 
         [TestMethod]
-        public void LifecycleResetLogic_ResetsOnFirstObservationAndPhaseEdgesOnly()
+        public void LifecycleResetLogic_ResetsOnlyWhenGameplayStarts()
         {
             bool hasObservedDayPhase = false;
             bool lastObservedDayPhase = false;
 
-            Assert.IsTrue(ServiceStatsLifecycleLogic.ShouldResetForDayPhase(false, ref hasObservedDayPhase, ref lastObservedDayPhase));
+            Assert.IsFalse(ServiceStatsLifecycleLogic.ShouldResetForDayPhase(false, ref hasObservedDayPhase, ref lastObservedDayPhase));
             Assert.IsTrue(hasObservedDayPhase);
             Assert.IsFalse(lastObservedDayPhase);
 
@@ -918,8 +918,20 @@ namespace KitchenServiceStatsHUD.Tests
             Assert.IsTrue(ServiceStatsLifecycleLogic.ShouldResetForDayPhase(true, ref hasObservedDayPhase, ref lastObservedDayPhase));
             Assert.IsTrue(lastObservedDayPhase);
             Assert.IsFalse(ServiceStatsLifecycleLogic.ShouldResetForDayPhase(true, ref hasObservedDayPhase, ref lastObservedDayPhase));
-            Assert.IsTrue(ServiceStatsLifecycleLogic.ShouldResetForDayPhase(false, ref hasObservedDayPhase, ref lastObservedDayPhase));
+            Assert.IsFalse(ServiceStatsLifecycleLogic.ShouldResetForDayPhase(false, ref hasObservedDayPhase, ref lastObservedDayPhase));
             Assert.IsFalse(lastObservedDayPhase);
+            Assert.IsTrue(ServiceStatsLifecycleLogic.ShouldResetForDayPhase(true, ref hasObservedDayPhase, ref lastObservedDayPhase));
+        }
+
+        [TestMethod]
+        public void LifecycleResetLogic_ResetsIfFirstObservedStateIsGameplay()
+        {
+            bool hasObservedDayPhase = false;
+            bool lastObservedDayPhase = false;
+
+            Assert.IsTrue(ServiceStatsLifecycleLogic.ShouldResetForDayPhase(true, ref hasObservedDayPhase, ref lastObservedDayPhase));
+            Assert.IsTrue(hasObservedDayPhase);
+            Assert.IsTrue(lastObservedDayPhase);
         }
 
         private static float ResolveScale(ServiceStatsScaleOption option)
