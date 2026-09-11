@@ -1,0 +1,26 @@
+[h1]Service Stats HUD[/h1]
+See how everyone helped during your restaurant day with a compact, configurable text overlay.
+
+[list]
+[*]srv: customer order items served at delivery
+[*]ord: orders taken
+[*]wash: dishes washed and floor messes cleaned
+[*]act: supported player interactions, including preparation and service
+[*]dist: distance traveled
+[*]idle and asleep: time without an action after separate configurable thresholds
+[/list]
+
+Player names come from the profiles selected at the beds, use player colors, and sort alphabetically. The list supports larger lobbies, including MMO Kitchen.
+
+[h2]Settings[/h2]
+Open Preferences, then Service Stats HUD. Toggle individual stats, change text size (30%-130%), choose a font, adjust vertical position, and configure idle/asleep thresholds. Washed and actions are hidden by default. Players are hidden until their first serve by default; choose Show Everyone to display them immediately.
+
+Your previous-day results remain through the next preparation phase. Stats reset when the next gameplay phase starts. Returning to HQ may clear them.
+
+[h2]Dependencies[/h2]
+Requires Harmony, KitchenLib, and PreferenceSystem. MMO Kitchen is optional.
+If you previously installed this mod manually, keep only one copy of Service Stats HUD to avoid duplicate loading.
+
+[h2]Source and feedback[/h2]
+[url=https://github.com/cschubiner/PlateUp-Mod-ServiceStatsHUD]Source code, installation guide, and issue tracker[/url]
+Action attribution covers supported native interactions. Automation without a player actor receives no player credit. Other mods can introduce interactions that need additional support.

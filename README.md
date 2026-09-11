@@ -4,6 +4,8 @@ Standalone PlateUp mod that adds a configurable text HUD with per-player daily s
 
 Download the compiled mod from [GitHub Releases](https://github.com/cschubiner/PlateUp-Mod-ServiceStatsHUD/releases).
 
+Steam Workshop item: [Service Stats HUD](https://steamcommunity.com/sharedfiles/filedetails/?id=3799437092). The initial upload is awaiting Steam's automated content review and is not publicly visible yet. Use the GitHub release for installation meanwhile.
+
 ## What It Tracks
 
 - `srv`: customer order items served at the delivery moment
@@ -111,6 +113,8 @@ Run these from the repository root. Building requires Windows, .NET Framework 4.
 ## Steam Workshop Publishing
 
 Build Release, then run `Open-ModUploader.ps1` to open PlateUp's bundled uploader. Select this repository's `workshop` folder. Publish only this mod's DLL and metadata as content, add a real in-game screenshot as the preview, and list Harmony, KitchenLib, and PreferenceSystem as required items. Preserve the resulting Workshop item ID for subsequent updates instead of creating duplicate listings.
+
+The existing item ID is saved in `workshop/plateup_mod_metadata.json`; use the uploader's **Update** tab. `Publish-Workshop.ps1 -DependenciesOnly` configures the three required items. After Steam's content review clears, `Publish-Workshop.ps1 -PreviewPath <screenshot-path>` updates the preview and requests public visibility. It uses the Steamworks library bundled with your installed game and requires Steam to be running and signed in as the item owner. It never creates a second listing.
 
 ## In-Game Smoke Checklist
 
