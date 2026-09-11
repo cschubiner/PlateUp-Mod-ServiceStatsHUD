@@ -1,6 +1,8 @@
 # Service Stats HUD
 
-Standalone PlateUp mod that adds a top-right debug-style HUD with per-player daily service stats. It is intentionally separate from the root rope mod.
+Standalone PlateUp mod that adds a configurable text HUD with per-player daily service stats. Player names use their chosen profile colors and sort alphabetically. The player list supports larger lobbies, including MMO Kitchen.
+
+Download the compiled mod from [GitHub Releases](https://github.com/cschubiner/PlateUp-Mod-ServiceStatsHUD/releases).
 
 ## What It Tracks
 
@@ -34,6 +36,8 @@ Open `Preferences` from the main menu or pause menu, then open `Service Stats HU
 - The size selector changes font size directly.
 - The y-offset selector moves the text block down from the top of the reference screen.
 - Label format uses the resolved profile/session name when available, otherwise `P#`.
+- Stats remain visible through the next preparation phase and reset when you start gameplay for the next day. Returning to HQ may clear them.
+- Washed and actions are hidden by default; enable them in Preferences.
 
 ## Attribution Rules
 
@@ -48,16 +52,16 @@ Open `Preferences` from the main menu or pause menu, then open `Service Stats HU
 
 ## Editing The Mod
 
-Source lives in `ServiceStatsHUD\`.
+Source lives at the root of this repository.
 
-- Entry point: `ServiceStatsHUD\Mod.cs`
-- Runtime stats state: `ServiceStatsHUD\Helpers\ServiceStatsRuntime.cs`
-- Pure HUD/stat logic: `ServiceStatsHUD\Helpers\ServiceStatsHudLogic.cs`
-- Settings menu: `ServiceStatsHUD\Helpers\ServiceStatsSettings.cs`
-- Harmony patches: `ServiceStatsHUD\Patches\ServiceStatsInteractionPatches.cs`
-- ECS systems: `ServiceStatsHUD\Systems\`
-- HUD renderer: `ServiceStatsHUD\Visuals\ServiceStatsHudManager.cs`
-- Tests: `ServiceStatsHUD\ServiceStatsHUD.Tests\ServiceStatsHudLogicTests.cs`
+- Entry point: `Mod.cs`
+- Runtime stats state: `Helpers/ServiceStatsRuntime.cs`
+- Pure HUD/stat logic: `Helpers/ServiceStatsHudLogic.cs`
+- Settings menu: `Helpers/ServiceStatsSettings.cs`
+- Harmony patches: `Patches/ServiceStatsInteractionPatches.cs`
+- ECS systems: `Systems/`
+- HUD renderer: `Visuals/ServiceStatsHudManager.cs`
+- Tests: `ServiceStatsHUD.Tests/ServiceStatsHudLogicTests.cs`
 
 Do not edit generated files under `bin`, `obj`, `TestResults`, or built DLL/PDB files under `workshop\content`.
 
@@ -75,7 +79,9 @@ The compiled DLL should be inside:
 C:\Program Files (x86)\Steam\steamapps\common\PlateUp\PlateUp\Mods\ServiceStatsHUD\content\ServiceStatsHUD.dll
 ```
 
-Use `Sync-WorkshopToMods.ps1` to copy the full `ServiceStatsHUD\workshop` folder into PlateUp's local `Mods\ServiceStatsHUD` folder.
+For a downloaded release, extract the ZIP into PlateUp's `Mods` folder. It contains `ServiceStatsHUD/content/ServiceStatsHUD.dll` and metadata. Keep only one installed copy of Service Stats HUD, including Workshop subscriptions, to avoid loading it twice.
+
+When building from source, the build script installs the DLL automatically. `Sync-WorkshopToMods.ps1` can also copy the repository's `workshop` folder into `Mods/ServiceStatsHUD`.
 
 ## Local Stack Verified In This Workspace
 
@@ -85,9 +91,11 @@ Use `Sync-WorkshopToMods.ps1` to copy the full `ServiceStatsHUD\workshop` folder
 - PreferenceSystem Workshop dependency: `2949018507`
 - ModUploader path: `PlateUp_Data\ModUploader.exe`
 
+Subscribe to [Harmony](https://steamcommunity.com/sharedfiles/filedetails/?id=2898033283), [KitchenLib](https://steamcommunity.com/sharedfiles/filedetails/?id=2898069883), and [PreferenceSystem](https://steamcommunity.com/sharedfiles/filedetails/?id=2949018507). These dependencies and the game's assemblies are not bundled with this mod.
+
 ## Build And Test
 
-Run these from `ServiceStatsHUD\`.
+Run these from the repository root. Building requires Windows, .NET Framework 4.7.2 targeting tools, MSBuild/Visual Studio Build Tools, and a local PlateUp installation with the dependencies above. Copy `Local.props.example` to `Local.props` to override installation paths if needed.
 
 1. Check setup:
    - `powershell.exe -ExecutionPolicy Bypass -File .\Check-PlateUpSetup.ps1`
@@ -98,7 +106,11 @@ Run these from `ServiceStatsHUD\`.
 4. Sync workshop content into the local PlateUp mods folder:
    - `powershell.exe -ExecutionPolicy Bypass -File .\Sync-WorkshopToMods.ps1`
 
-`Build-ServiceStatsHUD.ps1` compiles `ServiceStatsHUD.dll` and copies the build output into `ServiceStatsHUD\workshop\content`. `Sync-WorkshopToMods.ps1` copies that workshop folder into the local PlateUp `Mods\ServiceStatsHUD` directory.
+`Build-ServiceStatsHUD.ps1 -Configuration Release` compiles the Release DLL and copies it to both `workshop/content` and the local PlateUp mod folder. Close PlateUp before rebuilding. Do not distribute the whole `bin` folder: it contains game/dependency assemblies.
+
+## Steam Workshop Publishing
+
+Build Release, then run `Open-ModUploader.ps1` to open PlateUp's bundled uploader. Select this repository's `workshop` folder. Publish only this mod's DLL and metadata as content, add a real in-game screenshot as the preview, and list Harmony, KitchenLib, and PreferenceSystem as required items. Preserve the resulting Workshop item ID for subsequent updates instead of creating duplicate listings.
 
 ## In-Game Smoke Checklist
 
@@ -113,4 +125,4 @@ Run these from `ServiceStatsHUD\`.
 - Asleep starts increasing after the configured threshold, defaulting to 5 seconds without an attributed action.
 - Players with zero serves stay hidden unless `Show Everyone` is selected.
 - Once a player serves, their earlier orders, washes, actions, distance, idle, and asleep totals appear.
-- The HUD clears at the start of a new day and on relevant restaurant/HQ transitions.
+- Previous-day stats remain through preparation and clear when the next gameplay phase starts; HQ transitions may clear them.

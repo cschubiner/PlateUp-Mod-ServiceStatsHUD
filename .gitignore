@@ -5,3 +5,6 @@ Local.props
 *.user
 *.suo
 *.log
+workshop/content/*.dll
+workshop/content/*.pdb
+dist/
