@@ -4,7 +4,7 @@ Standalone PlateUp mod that adds a configurable text HUD with per-player daily s
 
 Download the compiled mod from [GitHub Releases](https://github.com/cschubiner/PlateUp-Mod-ServiceStatsHUD/releases).
 
-Steam Workshop item: [Service Stats HUD](https://steamcommunity.com/sharedfiles/filedetails/?id=3799437092). The initial upload is awaiting Steam's automated content review and is not publicly visible yet. Use the GitHub release for installation meanwhile.
+Subscribe on Steam Workshop: [Service Stats HUD](https://steamcommunity.com/sharedfiles/filedetails/?id=3799437092). The listing is public and includes Harmony, KitchenLib, and PreferenceSystem as required items. The GitHub release remains available for manual installation.
 
 ## What It Tracks
 
